@@ -89,7 +89,7 @@ def load_user(id) -> Optional[AppAccount]:
 def unauthorized():
     if request.headers.get("HX-Request"):
         response = make_response("", 401)
-        response.headers["HX-Redirect"] = url_for("auth.login")  # oder wie deine Route heißt
+        response.headers["HX-Redirect"] = url_for("app_account.login")
         return response
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("app_account.login"))
 
