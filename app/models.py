@@ -91,7 +91,7 @@ class MailAccount(db.Model):
     host: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     port: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, default=993)
     username: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, unique=True)
+    password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     delimiter: Mapped[String] = mapped_column(String(1), nullable=False, default="/")
 
     __table_args__ = (
