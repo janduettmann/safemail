@@ -1,0 +1,31 @@
+
+<!--
+    hidden: Standardmaessig versteckt, wird via JS eingeblendet
+    h-1: Sehr duenne Leiste
+-->
+{% if not is_visible %}
+<div id="scan-statusbar">
+    
+</div>
+
+{% else %}
+<div 
+    id="scan-statusbar"
+    hx-get="/scan/status"
+    hx-target="this"
+    hx-trigger="every 0.5s"
+    hx-swap="outerHTML"
+    class="shrink-0"
+>
+    <div id="scan-status" class="flex items-center gap-2 px-4 py-1.5 bg-[#1a1a1a] border-b border-white/10">
+        <i data-lucide="loader-2" class="w-3.5 h-3.5 text-rose-400 animate-spin"></i>
+        <span class="text-xs text-neutral-400">Scanning {{ scan_completed }}/{{ scan_total }} Mails...</span>
+        <!-- Fortschrittsbalken -->
+        <div class="flex-1 bg-white/10 h-0.5">
+        {% if scan_total != 0 %}
+            <div id="scan-progress" class="bg-gradient-to-r from-rose-500 to-pink-600 h-0.5 transition-all duration-300" style="width: {{ ((scan_completed/scan_total) * 100) | int }}%"></div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}

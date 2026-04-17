@@ -1,0 +1,78 @@
+<!-- Platzhalter wenn keine Mail ausgewaehlt -->
+{% if not mail %}
+    <div id="detail-placeholder" class="flex items-center justify-center h-full">
+        <div class="text-center text-neutral-500">
+            <i data-lucide="mail" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+            <p class="text-sm">Select a mail to view details</p>
+        </div>
+    </div>
+
+{% else %}
+    <!-- Detail-Inhalt (hidden bis eine Mail geklickt wird) -->
+    <div id="detail-content" class="p-6 flex flex-col h-full">
+        <div class="mb-6">
+        <h2 id="detail-subject" class="text-lg text-white font-medium mb-3">{{ mail.subject }}</h2>
+            <div class="flex flex-col gap-1 text-sm">
+                <div class="flex gap-10">
+                    <span class="text-neutral-500 uppercase font-semibold w-16">From</span>
+                    <span id="detail-sender" class="text-neutral-300">{{ mail.sender }}</span>
+                </div>
+                <div class="flex gap-10">
+                    <span class="text-neutral-500 uppercase font-semibold w-16">Date</span>
+                    <span id="detail-date" class="text-neutral-300">{{ mail.date }}</span>
+                </div>
+                <div class="flex gap-10">
+                    <span class="text-neutral-500 uppercase font-semibold w-16">Verdict</span>
+                    <span id="detail-verdict" class="text-neutral-300"></span>
+                </div>
+                <div class="flex gap-10">
+                    <span class="text-neutral-500 uppercase font-semibold w-16">
+                        {% if  mail.occurrence_files|length == 0 %}
+                            
+                        {% elif  mail.occurrence_files|length == 1 %}
+                            Attachment
+                        {% else %}
+                            Attachments
+                        {% endif %}
+                    </span>
+                    <div class="">
+                    {% for file in mail.occurrence_files %}
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/15 text-rose-400 border border-rose-500/20">
+                            <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
+                            <span class="truncate max-w-32">{{ file.filename }}</span>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <button
+                        id="single-scan-btn" 
+                        hx-post="/scan/{{ mail.id }}"
+                        hx-target="#scan-statusbar"
+                        hx-swap="outerHTML"
+                        class="flex flex-row gap-x-1 items-center p-1 rounded-lg text-white font-semibold cursor-pointer border-2 border-white/20
+                            bg-rose-500 
+                            transition-all duration-300 ease-in-out
+                            hover:bg-rose-600 hover:border-white/70
+                            focus:outline-none"
+                        >
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        <span>Scan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Trennlinie -->
+        <hr class="border-white/10 mb-4">
+        <!-- Mail-Body Platzhalter -->
+        <div id="detail-body" class="text-sm text-neutral-300 leading-relaxed flex-1">
+            {% if mail.html %}
+                <iframe class="w-full h-full rounded-2xl" sandbox srcdoc="{{ mail.html | e}}"></iframe>
+            {% elif mail.text %}
+                <div class="whitespace-pre-wrap text-neutral-300">
+                {{ mail.text }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

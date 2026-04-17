@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>SafeMail</title>
+{% endblock %}
+{% block body %}
+<div class="flex h-screen">
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <!--
+        w-14: Breite eingeklappt (56px, genug für Icons)
+        w-56: Breite ausgeklappt (224px, Icons + Text)
+        transition-all duration-200: Smooth Animation beim Wechsel
+        flex flex-col: Vertikal stapeln (Logo oben, Nav mitte, Settings unten)
+        shrink-0: Sidebar soll NICHT schrumpfen wenn Content breit wird
+    -->
+    <aside id="sidebar" class="w-14 h-full bg-[#212121] border-r border-white/10 flex flex-col transition-all duration-200 shrink-0">
+
+        <!-- === TOP: Logo + Toggle === -->
+        <div class="p-3 flex items-center gap-3">
+            <!-- Toggle-Button: Klappt Sidebar auf/zu -->
+            <button onclick="toggleSidebar()" class="p-1.5 rounded-md hover:bg-white/10 text-neutral-400 hover:text-white transition-colors">
+                <i data-lucide="panel-left" class="w-5 h-5"></i>
+            </button>
+            <!-- Label: Nur sichtbar wenn ausgeklappt -->
+            <span class="sidebar-label text-white font-semibold text-sm hidden whitespace-nowrap">SafeMail</span>
+        </div>
+
+        <!-- === MITTE: Haupt-Navigation (wächst, drückt Footer nach unten) === -->
+        <!-- flex-1: Nimmt allen verfügbaren Platz ein -->
+        <nav class="flex-1 flex flex-col gap-1 px-2 mt-2">
+            {% set nav_items = [
+                ('home', 'Home', '/home'),
+                ('chart-no-axes-combined', 'Analytics', '/analytics'),
+                ('search', 'Search', '/search')
+            ] %}
+            {% for icon, label, href in nav_items %}
+                <a href="{{ href }}" class="flex items-center gap-3 px-2.5 py-2 rounded-md {{ 'bg-white/10 text-white' if request.path == href else 'text-neutral-400 hover:bg-white/10 hover:text-white transition-colors' }}">
+                    <i data-lucide="{{ icon }}" class="w-5 h-5 shrink-0"></i>
+                    <span class="sidebar-label text-sm hidden whitespace-nowrap">{{ label }}</span>
+                </a>
+            {% endfor %}
+        </nav>
+
+        <!-- === UNTEN: Sekundäre Links === -->
+        <div class="flex flex-col gap-1 px-2 pb-3">
+            {% set bottom_items = [
+                ('circle-user-round', 'Account', '/account'),
+                ('settings', 'Settings', '/settings')
+            ] %}
+            {% for icon, label, href in bottom_items %}
+                <a href="{{ href }}" class="flex items-center gap-3 px-2.5 py-2 rounded-md {{ 'bg-white/10 text-white' if request.path == href else 'text-neutral-400 hover:bg-white/10 hover:text-white transition-colors' }}">
+                    <i data-lucide="{{ icon }}" class="w-5 h-5 shrink-0"></i>
+                    <span class="sidebar-label text-sm hidden whitespace-nowrap">{{ label }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <!-- ==================== CONTENT ==================== -->
+    <!-- flex-1: Nimmt den restlichen Platz neben der Sidebar ein -->
+    <main class="flex-1 overflow-auto">
+        {% block app_content %}
+        {% endblock %}
+    </main>
+</div>
+
+<!-- ==================== SIDEBAR TOGGLE SCRIPT ==================== -->
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const labels = document.querySelectorAll('.sidebar-label');
+
+        // Toggle Breite: w-14 (eingeklappt) ↔ w-56 (ausgeklappt)
+        sidebar.classList.toggle('w-14');
+        sidebar.classList.toggle('w-56');
+
+        // Toggle Labels: hidden ↔ sichtbar
+        labels.forEach(label => label.classList.toggle('hidden'));
+    }
+</script>
+{% endblock %}

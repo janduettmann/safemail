@@ -1,0 +1,15 @@
+{
+  "name": "safemail",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:css": "npx @tailwindcss/cli -i ./app/static/css/input.css -o ./app/static/css/style.css --watch",
+    "build:css": "npx @tailwindcss/cli -i ./app/static/css/input.css -o ./app/static/css/style.css --minify",
+    "dev": "concurrently -k -n css,flask \"npm run dev:css\" \"uv run run.py\""
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.0",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "^4.2.0"
+  }
+}

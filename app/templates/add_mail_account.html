@@ -1,0 +1,87 @@
+
+{% extends 'base_auth.html' %}
+
+{% block head %}
+    {{ super() }}
+    <title>AddMailAccount</title>
+{% endblock %}
+
+{% block auth_content %}
+<div>
+    <div class="mb-5">
+        <h1 class="text-white text-4xl tracking-tighter font-bold">Add Mail Account</h1>
+    </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class=flashes>
+                {% for message in messages %}
+                    <div class="bg-red-300/70 border border-white/30 rounded-lg p-2.5 mt-5 shadow-lg shadow-red-400/30">
+                        <div class="flex flex-col">
+                            <span class="text-red-600/80 text-lg font-bold tracking-tighter ">Something went wrong!</span>
+                            <p class="text-black/50 font-semibold line-clamp-3">{{ message }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <form method="POST" action="/add_mail_account">
+        <div class="bg-black/50 border border-white/20 rounded-lg p-5">
+            <div class="flex flex-col gap-y-5">
+                <div class="flex flex-col gap-y-2.5">
+                    <span class="text-xl text-white/80 font-semibold tracking-tighter">Username</span>
+                    <input class="w-full p-2.5 bg-black/15 border border-white/20 rounded-lg text-white font-semibold" type="text" name="username" required=True>
+                </div>
+                <div class="flex flex-col gap-y-2.5">
+                    <span class="text-xl text-white/80 font-semibold tracking-tighter">Password</span>
+                    <div class="relative">
+                        <input id="passwordInput" class="w-full p-2.5 pr-12 bg-black/15 border border-white/20 rounded-lg text-white font-semibold" type="password" name="password" required>
+                        <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors">
+                            <!-- Eye Open -->
+                            <svg id="eyeOpen" class="w-6 h-6 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <!-- Eye Closed -->
+                            <svg id="eyeClosed" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-y-2.5 my-5">
+                <span class="text-xl text-white/80 font-semibold tracking-tighter">Hostname</span>
+                <input class="w-full p-2.5 bg-black/15 border border-white/20 rounded-lg text-white font-semibold placeholder-white/30" type="text" name="host" required=True placeholder="e.g. imap.mail.me.com">
+            </div>
+            <div class="flex flex-col gap-y-2.5 pb-5">
+                <span class="text-xl text-white/80 font-semibold tracking-tighter">Port</span>
+                <input class="w-full p-2.5 bg-black/15 border border-white/20 rounded-lg text-white font-semibold placeholder-white/30" type="text" name="port" placeholder="e.g. 993" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+        </div>
+        <div class="flex flex-row justify-between pt-10 gap-x-10">
+            <input class="w-full p-2.5 rounded-full text-white font-semibold cursor-pointer border-2 border-white/30
+                bg-rose-500 
+                transition-all duration-300 ease-in-out
+                hover:bg-rose-600 hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-500/50 hover:border-white/20
+                active:scale-95
+                focus:outline-none focus:shadow-2xl focus:shadow-rose-600" type="submit" value="Add Mail Account">
+            <a href="{{ url_for('app_account.login') }}" class="
+                    text-white font-semibold border-2 border-white/30
+                    flex items-center gap-2 px-4 py-2 
+                    bg-rose-500 text-white rounded-full
+                    transition-all duration-300 ease-in-out
+                    hover:bg-rose-600 hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-500/50 hover:border-white/20
+                    active:scale-95
+                    focus:outline-none focus:shadow-2xl focus:shadow-rose-600
+                    ">
+                <i data-lucide="arrow-left-from-line" class="w-4 h-4"></i>
+            Back
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

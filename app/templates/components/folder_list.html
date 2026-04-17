@@ -1,0 +1,17 @@
+{% set folder_icons = {'inbox' : 'inbox', 'sent' : 'send', 'drafts' : 'sticky-note', 'junk' : 'octagon-alert', 'trash': 'trash-2', 'all' : 'mails', 'archive' : 'archive'} %}
+{% for folder in folders %}
+<a 
+    hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ folder.id }}"
+    hx-trigger="click"
+    hx-target="#mail-list"
+    hx-swap="innerHTML"
+    class="flex items-center gap-2 px-3 py-1.5 mx-2 mt-1 rounded-md text-sm {{ 'bg-white/10 text-white' if folder.id == selected_folder_id else 'text-neutral-400 hover:bg-white/10 hover:text-white' }} transition-colors"
+>
+    <!--
+        Verschiedene Icons pro Ordner-Typ
+        Wichtig: Dazu muss noch die Flag des Folders mit in die DB
+    -->
+    <i data-lucide="{{ folder_icons[folder.flag] if folder.flag in folder_icons else 'folder-closed' }}" class="w-4 h-4 shrink-0"></i>
+    <span>{{ 'Spam' if folder.name.upper() == 'JUNK' else folder.name }}</span>
+</a>
+{% endfor %}

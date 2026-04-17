@@ -1,0 +1,42 @@
+{% for mail in mails %}
+<!--
+    group: Erlaubt Kind-Elemente auf Hover des Parents zu stylen
+    cursor-pointer: Zeigt klickbare Hand
+-->
+<div hx-get="/mail/{{ mail.id }}/content"
+     hx-target="#mail-detail"
+     class="group flex items-center gap-3 px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors">
+
+
+    <!-- Verdict-Indikator: Farbiger Punkt -->
+    <!--
+        Farben je nach Verdict:
+        malicious = rot, suspicious = gelb, benign = gruen, unknown = grau
+    -->
+    <!--
+    <div class="w-2 h-2 rounded-full shrink-0
+        {{ 'bg-red-500' if mail.verdict == 'malicious'
+            else 'bg-yellow-500' if mail.verdict == 'suspicious'
+            else 'bg-green-500' if mail.verdict == 'benign'
+            else 'bg-neutral-500' }}">
+    </div>
+    -->
+    <!-- Mail-Infos -->
+    <!--
+        min-w-0: Erlaubt Text-Truncation in Flex-Containern
+        truncate: Text mit ... abschneiden wenn zu lang
+    -->
+    <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-2">
+            <span class="text-sm text-white truncate">{{ mail.subject }}</span>
+            <span class="text-xs text-neutral-500 shrink-0">{{ mail.date }}</span>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+            <span class="text-xs text-neutral-500 truncate block">{{ mail.sender }}</span>
+            {% if mail.occurrence_files|length > 0 %}
+                <i data-lucide="paperclip" class="w-3.5 h-3.5 text-neutral-500 shrink-0"></i>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}

@@ -1,0 +1,64 @@
+{% extends 'base_auth.html' %}
+
+{% block head %}
+    {{ super() }}
+    <title>Login</title>
+{% endblock %}
+
+{% block auth_content %}
+<div class>
+    <div class="border-b border-white/10 pb-5">
+        <h1 class="text-white text-4xl tracking-tighter font-bold">Login</h1>
+    </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="space-y-3 mt-6">
+                {% for message in messages %}
+                    <div class="flex items-start gap-4 p-4 rounded-xl border border-red-500/20 bg-red-500/5 backdrop-blur-sm group animate-in fade-in slide-in-from-top-2 duration-300">
+                        <!-- Icon: Lucide Alert-Circle -->
+                        <div class="flex-shrink-0 mt-0.5">
+                            <i data-lucide="alert-circle" class="w-6 h-6 text-red-500"></i>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <h3 class="text-red-500 font-bold text-sm tracking-wide uppercase">SOMETHING WENT WRONG</h3>
+                            <p class="text-neutral-400 text-sm leading-relaxed">{{ message }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <form method="POST" action="/login">
+        <div class="flex flex-col gap-y-5 my-5 border-b border-white/10 pb-10">
+            <div class="flex flex-col gap-y-2.5">
+                <span class="text-xl text-white/80 font-semibold tracking-tighter">Username</span>
+                <input class="w-full p-2.5 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="text" name="username" required=True>
+            </div>
+            <div class="flex flex-col gap-y-2.5">
+                <span class="text-xl text-white/80 font-semibold tracking-tighter">Password</span>
+                <div class="    relative">
+                    <input id="passwordInput" class="w-full p-2.5 pr-12 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="password" name="password" required>
+                    <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors">
+                        <!-- Eye Open -->
+                        <i id="eyeOpen" data-lucide="eye" class="w-6 h-6 text-white hidden"></i>
+                        <!-- Eye Closed -->
+                        <i id="eyeClosed" data-lucide="eye-off" class="w-6 h-6 text-white"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="pt-5">
+            <input class="w-full p-2.5 rounded-full text-white font-semibold cursor-pointer border-2 border-white/20
+                  bg-rose-500 
+                  transition-all duration-300 ease-in-out
+                  hover:bg-rose-600 hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-500/50 hover:border-white/20 active:scale-95
+                  focus:outline-none focus:shadow-2xl focus:shadow-rose-600" type="submit" value="Login">
+        </div>
+    </form>
+    <div class="flex flex-row justify-center gap-x-2.5 mt-5">
+        <span class="font-semibold text-white/70">Don't have an account?</span>
+        <a  class="font-bold text-white" href="{{ url_for('app_account.signup') }}">Sign up</a>
+    </div>
+</div>
+{% endblock %}

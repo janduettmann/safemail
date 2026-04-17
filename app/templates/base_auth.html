@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>BaseAuth</title>
+{% endblock %}
+
+{% block body %}
+<div class="absolute top-6 left-8 z-50">
+    <span class="text-2xl font-extrabold tracking-tighter text-white drop-shadow-md">
+        Safe<span class="text-rose-500 opacity-90">Mail</span>
+    </span>
+    <div class="h-1 w-full bg-gradient-to-r from-transparent via-rose-500 stroke-orange-600 rounded-full mt-[-2px] opacity-50"></div>
+</div>
+<div class="w-full max-w-md mx-auto my-64 p-8 bg-[#212121] border border-white/10 rounded-2xl shadow-xl">
+    {% block auth_content %}
+    {% endblock %}
+</div>
+<script>
+function togglePassword() {
+    const input = document.getElementById('passwordInput');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClosed = document.getElementById('eyeClosed');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        eyeOpen.classList.remove('hidden');
+        eyeClosed.classList.add('hidden');
+    } else {
+        input.type = 'password';
+        eyeOpen.classList.add('hidden');
+        eyeClosed.classList.remove('hidden');
+    }
+}
+</script>
+{% endblock %}

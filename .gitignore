@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+
+# Environment
+.env
+
+# Database
+*.db
+instance/
+
+# IDE/Tools
+.claude/
+.vscode/
+.idea/
+
+# Secrets/Local
+cookies.txt
