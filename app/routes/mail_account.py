@@ -55,7 +55,6 @@ def add_mail_account():
         db.session.add(new_mail_account)
         db.session.flush()
         # Folder name and uidvalidity
-        # Das muss mit in den mail viewer und asynchron
         try:
             with ImapFetcher(DecryptedMailAccount.decrypt_mail_account(new_mail_account)) as imap_fetcher:
                 folder_infos: list[FolderInfo] = imap_fetcher.fetch_folders()
