@@ -63,6 +63,8 @@ def single_scan(mail_id):
 @login_required
 def scan_status():
     response = make_response(render_template('components/scan_statusbar.html', scan_completed=scan_queue.completed, scan_total=scan_queue.total, is_visible=scan_queue.is_visible()), 200)
+    if scan_queue.pop_notify():
+        response.headers["HX-Trigger"] = "scanComplete"
     return response
 
 

@@ -223,3 +223,4 @@ class CanonicalFile(db.Model):
     harmless: Mapped[int] = mapped_column(nullable=False, default=0)
     undetected: Mapped[int] = mapped_column(nullable=False, default=0)
     checked_at: Mapped[Optional[datetime]] = mapped_column(nullable=True, index=True)
+

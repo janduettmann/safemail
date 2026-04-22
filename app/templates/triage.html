@@ -49,7 +49,10 @@
         <div class="flex-1 flex min-h-0">
 
             <!-- ===== MAIL-LIST ===== -->
-            <div id="mail-list" class="w-1/2 overflow-y-auto border-r border-white/10">
+            <div id="mail-list" class="w-1/2 overflow-y-auto border-r border-white/10"
+                 hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page={{ page }}"
+                 hx-trigger="scanComplete from:body"
+                 hx-swap="innerHTML">
                 {% if is_syncing %}
                     {% include 'components/mail_list_polling.html' %}
                 {% else %}

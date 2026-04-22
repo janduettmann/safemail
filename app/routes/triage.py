@@ -139,7 +139,7 @@ def home():
             folders=folders,
             mails=decrypted_mails,
             selected_account_id=selected_account_id,
-            selected_folder_id=selected_folder_id,
+        selected_folder_id=selected_folder_id,
             page=page,
             page_size=page_size,
             total_pages=total_pages,

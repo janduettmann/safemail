@@ -11,6 +11,7 @@ class ScanQueue:
         self.completed: int = 0
         self.lock = threading.Lock()
         self.finished_at: Optional[float] = None
+        self.pending_notify: bool = False
 
     def add(self, mail_id: int) -> None:
         with self.lock:
@@ -26,6 +27,14 @@ class ScanQueue:
             self.completed += 1
             if self.completed == self.total:
                 self.finished_at = time.time()
+                self.pending_notify = True
+
+    def pop_notify(self) -> bool:
+        with self.lock:
+            if self.pending_notify:
+                self.pending_notify = False
+                return True
+            return False
 
     def is_visible(self) -> bool:
         with self.lock:

@@ -7,6 +7,8 @@ from collections import defaultdict
 from urllib.parse import urlsplit
 import logging
 import hashlib
+import tldextract
+from tldextract import ExtractResult
 
 from app.services.extractor import Extractor
 from app.extensions import db, user_keys
@@ -74,7 +76,10 @@ class Ingester:
         canonical_groups: defaultdict[str, list[str]] = defaultdict(list)
         for url in urls:
             # Gets the last two entries sperated by comma und puts them in lowercase
-            canonical_url = f"https://{'.'.join(urlsplit(url).netloc.split('.')[-2:]).lower()}"
+            extract_result: ExtractResult = tldextract.extract(url)
+            if not extract_result.domain or not extract_result.suffix:
+                continue
+            canonical_url = f"https://{extract_result.domain.lower()}.{extract_result.suffix.lower()}"
             canonical_groups[canonical_url].append(url)
 
         return canonical_groups
