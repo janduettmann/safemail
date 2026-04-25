@@ -101,6 +101,7 @@ def login():
 def logout():
     """Log the user out and remove their data key from the in-memory store."""
     app_account = cast(AppAccount, current_user)
-    user_keys.pop(app_account.id, None)
+    if user_keys[app_account.id]:
+        del user_keys[app_account.id]
     logout_user()
     return render_template('login.html')

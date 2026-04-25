@@ -272,15 +272,6 @@ wheels = [
 ]
 
 [[package]]
-name = "filelock"
-version = "3.28.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d6/17/6e8890271880903e3538660a21d63a6c1fea969ac71d0d6b608b78727fa9/filelock-3.28.0.tar.gz", hash = "sha256:4ed1010aae813c4ee8d9c660e4792475ee60c4a0ba76073ceaf862bd317e3ca6", size = 56474, upload-time = "2026-04-14T22:54:33.625Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3b/21/2f728888c45033d34a417bfcd248ea2564c9e08ab1bfd301377cf05d5586/filelock-3.28.0-py3-none-any.whl", hash = "sha256:de9af6712788e7171df1b28b15eba2446c69721433fa427a9bee07b17820a9db", size = 39189, upload-time = "2026-04-14T22:54:32.037Z" },
-]
-
-[[package]]
 name = "flask"
 version = "3.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -479,18 +470,6 @@ wheels = [
 ]
 
 [[package]]
-name = "requests-file"
-version = "3.0.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/f8/5dc70102e4d337063452c82e1f0d95e39abfe67aa222ed8a5ddeb9df8de8/requests_file-3.0.1.tar.gz", hash = "sha256:f14243d7796c588f3521bd423c5dea2ee4cc730e54a3cac9574d78aca1272576", size = 6967, upload-time = "2025-10-20T18:56:42.279Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/d5/de8f089119205a09da657ed4784c584ede8381a0ce6821212a6d4ca47054/requests_file-3.0.1-py2.py3-none-any.whl", hash = "sha256:d0f5eb94353986d998f80ac63c7f146a307728be051d4d1cd390dbdb59c10fa2", size = 4514, upload-time = "2025-10-20T18:56:41.184Z" },
-]
-
-[[package]]
 name = "safemail"
 version = "0.1.0"
 source = { virtual = "." }
@@ -504,7 +483,6 @@ dependencies = [
     { name = "imap-tools" },
     { name = "python-dotenv" },
     { name = "requests" },
-    { name = "tldextract" },
 ]
 
 [package.metadata]
@@ -518,7 +496,6 @@ requires-dist = [
     { name = "imap-tools", specifier = ">=1.11.1" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "requests", specifier = ">=2.32.5" },
-    { name = "tldextract", specifier = ">=5.3.1" },
 ]
 
 [[package]]
@@ -563,21 +540,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/33/75/f28622ba6dde79cd545055ea7bd4062dc934e0621f7b3be2891f8563f8de/sqlalchemy-2.0.46-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:ff33c6e6ad006bbc0f34f5faf941cfc62c45841c64c0a058ac38c799f15b5ede", size = 3470008, upload-time = "2026-01-21T18:33:11.725Z" },
     { url = "https://files.pythonhosted.org/packages/a9/42/4afecbbc38d5e99b18acef446453c76eec6fbd03db0a457a12a056836e22/sqlalchemy-2.0.46-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:82ec52100ec1e6ec671563bbd02d7c7c8d0b9e71a0723c72f22ecf52d1755330", size = 3476137, upload-time = "2026-01-21T18:45:15.001Z" },
     { url = "https://files.pythonhosted.org/packages/fc/a1/9c4efa03300926601c19c18582531b45aededfb961ab3c3585f1e24f120b/sqlalchemy-2.0.46-py3-none-any.whl", hash = "sha256:f9c11766e7e7c0a2767dda5acb006a118640c9fc0a4104214b96269bfb78399e", size = 1937882, upload-time = "2026-01-21T18:22:10.456Z" },
-]
-
-[[package]]
-name = "tldextract"
-version = "5.3.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "filelock" },
-    { name = "idna" },
-    { name = "requests" },
-    { name = "requests-file" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/65/7b/644fbbb49564a6cb124a8582013315a41148dba2f72209bba14a84242bf0/tldextract-5.3.1.tar.gz", hash = "sha256:a72756ca170b2510315076383ea2993478f7da6f897eef1f4a5400735d5057fb", size = 126105, upload-time = "2025-12-28T23:58:05.532Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/42/0e49d6d0aac449ca71952ec5bae764af009754fcb2e76a5cc097543747b3/tldextract-5.3.1-py3-none-any.whl", hash = "sha256:6bfe36d518de569c572062b788e16a659ccaceffc486d243af0484e8ecf432d9", size = 105886, upload-time = "2025-12-28T23:58:04.071Z" },
 ]
 
 [[package]]

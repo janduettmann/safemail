@@ -1,66 +1,42 @@
-{# Verdict-Badge Macro #}
-{% macro verdict_badge(mail) %}
-    {% set status = mail.scan_status.value %}
-    {% set verdict = mail.verdict.value %}
-
-    {% if status == 'running' %}
-        <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-blue-500/15 text-blue-400 border border-blue-500/20 animate-pulse">
-            <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>…
-        </span>
-
-    {% elif status == 'completed' and verdict == 'malicious' %}
-        <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-red-500/15 text-red-400 border border-red-500/20">
-            <i data-lucide="shield-alert" class="w-3 h-3"></i>{{ mail.worst_verdict }}/{{ mail.total_engines }}
-        </span>
-
-    {% elif status == 'completed' and verdict == 'suspicious' %}
-        <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-yellow-500/15 text-yellow-400 border border-yellow-500/20">
-            {{ mail.worst_verdict }}/{{ mail.total_engines }}
-        </span>
-
-    {% elif status == 'completed' and verdict == 'benign' %}
-        <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-green-500/15 text-green-400 border border-green-500/20">
-            {{ mail.worst_verdict }}/{{ mail.total_engines }}
-        </span>
-
-    {% elif status == 'failed' %}
-        <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-white/5 text-neutral-500 border border-white/10" title="Scan failed">
-            <i data-lucide="shield-off" class="w-3 h-3"></i>
-        </span>
-
-    {% else %}
-        {# pending / completed+unknown #}
-        <span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-white/5 text-neutral-500 border border-white/10">
-            —
-        </span>
-    {% endif %}
-{% endmacro %}
-
 {% for mail in mails %}
+<!--
+    group: Erlaubt Kind-Elemente auf Hover des Parents zu stylen
+    cursor-pointer: Zeigt klickbare Hand
+-->
 <div hx-get="/mail/{{ mail.id }}/content"
      hx-target="#mail-detail"
-     class="mail-row group flex items-center gap-3 px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors
-            {% if mail.scan_status.value == 'completed' and mail.verdict.value == 'malicious' %}bg-red-500/[0.03]{% endif %}"
-     data-threat="{{
-        'danger' if mail.scan_status.value == 'completed' and mail.verdict.value == 'malicious'
-        else 'warn' if mail.scan_status.value == 'completed' and mail.verdict.value == 'suspicious'
-        else 'safe' if mail.scan_status.value == 'completed' and mail.verdict.value == 'benign'
-        else 'scanning' if mail.scan_status.value == 'running'
-        else 'unknown'
-     }}">
+     class="group flex items-center gap-3 px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors">
 
-    {{ verdict_badge(mail) }}
 
+    <!-- Verdict-Indikator: Farbiger Punkt -->
+    <!--
+        Farben je nach Verdict:
+        malicious = rot, suspicious = gelb, benign = gruen, unknown = grau
+    -->
+    <!--
+    <div class="w-2 h-2 rounded-full shrink-0
+        {{ 'bg-red-500' if mail.verdict == 'malicious'
+            else 'bg-yellow-500' if mail.verdict == 'suspicious'
+            else 'bg-green-500' if mail.verdict == 'benign'
+            else 'bg-neutral-500' }}">
+    </div>
+    -->
+    <!-- Mail-Infos -->
+    <!--
+        min-w-0: Erlaubt Text-Truncation in Flex-Containern
+        truncate: Text mit ... abschneiden wenn zu lang
+    -->
     <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
-            <span class="text-sm text-white truncate font-medium">{{ mail.subject }}</span>
+            <span class="text-sm text-white truncate">{{ mail.subject }}</span>
             <span class="text-xs text-neutral-500 shrink-0">{{ mail.date }}</span>
         </div>
-        <span class="text-xs text-neutral-500 truncate block">{{ mail.sender }}</span>
+        <div class="flex items-center justify-between gap-2">
+            <span class="text-xs text-neutral-500 truncate block">{{ mail.sender }}</span>
+            {% if mail.occurrence_files|length > 0 %}
+                <i data-lucide="paperclip" class="w-3.5 h-3.5 text-neutral-500 shrink-0"></i>
+            {% endif %}
+        </div>
     </div>
-
-    {% if mail.occurrence_files|length > 0 %}
-        <i data-lucide="paperclip" class="w-3.5 h-3.5 text-neutral-600 shrink-0"></i>
-    {% endif %}
 </div>
 {% endfor %}
