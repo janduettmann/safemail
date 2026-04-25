@@ -11,42 +11,6 @@ from app.extensions import scan_queue
 
 scan_bp = Blueprint("scan", __name__)
 
-
-@scan_bp.route("/scan", methods=["POST"])
-@login_required
-def full_scan() -> str:
-    """Starts a mail scan for a specific folder. 
-    
-    This endpoint retrieves the folder and associated mail account details,
-    ensuring the folder belongs to the corrently authenticated user. It decrypts
-    the account credentials and triggers the MailScanService to process messages.
-
-    Returns:
-        str: A success message indicating the scan has been successful. 
-    """
-    folder_id = int(request.form["folder_id"])
-    limit = int(request.form["limit"])
-    stmt_folder = (
-    select(Folder, MailAccount)
-    .join(MailAccount, MailAccount.id == Folder.account_id)
-    .join(AppAccount, AppAccount.id == MailAccount.owner_id)
-    .where(
-        Folder.id == folder_id,
-        AppAccount.id == current_user.id
-        )
-    )
-    folder_account_entry = db.session.execute(stmt_folder).one_or_none()
-
-    if not folder_account_entry:
-        abort(404)
-
-    folder_entry, account_entry = folder_account_entry
-    mail_account: DecryptedMailAccount = DecryptedMailAccount.decrypt_mail_account(account_entry)
-    mail_scan_service: MailScanService = MailScanService(mail_account, folder_entry.id, limit)
-
-    return "Scan Successful!"
-
-
 @scan_bp.route("/scan/<int:mail_id>", methods=["POST"])
 @login_required
 def single_scan(mail_id):

@@ -3,9 +3,9 @@ from sqlalchemy import select
 from datetime import datetime, timezone
 import logging
 
-from app.enums import ScanStatus
+from app.enums import ScanStatus, Verdict
 from app.exceptions import VTApiError, VTMaxRetriesException
-from app.models import CanonicalUrl, CanonicalFile, OccurrenceFile, OccurrenceUrl
+from app.models import CanonicalUrl, CanonicalFile, Mail, OccurrenceFile, OccurrenceUrl
 from app.schemas import VTReportSummary
 from app.services.vt_client import VTClient
 from app.extensions import db
@@ -15,8 +15,65 @@ logger = logging.getLogger(__name__)
 class MailScanService:
 
     def scan_mail(self, mail_id: int, vt_client: VTClient) -> None:
+
+        mail = db.session.get(Mail, mail_id)
+
+        if not mail:
+            return
+
+        mail.scan_status = ScanStatus.RUNNING
+        db.session.commit()
+
         self.scan_urls(mail_id, vt_client)
         self.scan_files(mail_id, vt_client)
+        self.aggregate_mail_verdict(mail_id)
+
+    def aggregate_mail_verdict(self, mail_id: int) -> None:
+        mail = db.session.get(Mail, mail_id)
+
+        if not mail:
+            return
+
+        canonical_urls_stmt = (
+        select(CanonicalUrl)
+        .join(OccurrenceUrl, OccurrenceUrl.canonical_id == CanonicalUrl.id)
+        .where(
+                OccurrenceUrl.mail_id == mail_id
+            )
+        )
+        canonical_files_stmt = (
+        select(CanonicalFile)
+        .join(OccurrenceFile, OccurrenceFile.canonical_id == CanonicalFile.id)
+        .where(
+                OccurrenceFile.mail_id == mail_id
+            )
+        )
+        canonical_objects = list(db.session.scalars(canonical_urls_stmt).unique().all()) + list(db.session.scalars(canonical_files_stmt).unique().all())
+
+        if not canonical_objects:
+            mail.scan_status = ScanStatus.COMPLETED
+            mail.verdict = Verdict.BENIGN
+            mail.worst_verdict = 0
+            mail.total_engines = 0
+            db.session.commit()
+            return
+    
+        if all(co.scan_status == ScanStatus.FAILED for co in canonical_objects):
+            mail.scan_status = ScanStatus.FAILED
+            mail.verdict = Verdict.UNKNOWN
+            mail.worst_verdict = 0
+            mail.total_engines = 0
+            db.session.commit()
+            return
+
+        worst_co = max(canonical_objects, key=lambda co: co.verdict.severity)
+
+        mail.scan_status = ScanStatus.COMPLETED
+        mail.verdict = worst_co.verdict
+        mail.worst_verdict = worst_co.malicious
+        mail.total_engines = worst_co.malicious + worst_co.suspicious + worst_co.harmless + worst_co.undetected
+        db.session.commit()
+        return
 
     def scan_urls(self, mail_id: int, vt_client: VTClient) -> None:
         canonical_urls_stmt = (

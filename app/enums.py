@@ -7,6 +7,17 @@ class Verdict(str, Enum):
     BENIGN = "benign"
     UNKNOWN = "unknown"
 
+    @property
+    def severity(self) -> int:
+        return _SEVERITY[self]
+
+_SEVERITY = {
+    Verdict.UNKNOWN: 0,
+    Verdict.BENIGN: 1,
+    Verdict.SUSPICIOUS: 2,
+    Verdict.MALICIOUS: 3
+}
+
 class ScanStatus(str, Enum):
     """Lifecycle state of a VirusTotal scan job."""
     PENDING = "pending"

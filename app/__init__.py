@@ -14,6 +14,7 @@ from app.routes.app_account import app_account_bp
 from app.routes.triage import triage_bp
 from app.services.mail_scan_service import MailScanService
 from app.services.vt_client import VTClient
+from app.enums import Verdict, ScanStatus
 
 
 
@@ -35,7 +36,11 @@ def create_app() -> Flask:
 
     with app.app_context():
         db.create_all()
-    
+
+    @app.context_processor
+    def inject_enums():
+        return {"ScanStatus": ScanStatus, "Verdict": Verdict} 
+
     @app.before_request
     def check_user_keys():
         """Log out users whose data key is missing from the in-memory store.
