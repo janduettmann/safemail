@@ -43,10 +43,10 @@
             {% include 'components/toolbar.html' %}
         </div>
 
-        <!-- ========== SCAN STATUSBAR ========== -->
-        {% include 'components/scan_statusbar.html' %}
         <!-- ========== MAIL-LIST + DETAILS ========== -->
-        <div class="flex-1 flex min-h-0">
+        <div class="flex-1 flex min-h-0 relative">
+            <!-- ========== SCAN STATUSBAR ========== -->
+            {% include 'components/scan_statusbar.html' %}
 
             <!-- ===== MAIL-LIST ===== -->
             <div class="w-1/2 overflow-y-auto border-r border-white/10">
