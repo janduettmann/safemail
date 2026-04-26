@@ -112,12 +112,12 @@ def home():
         if request.headers.get("HX-Request"):
             # Sync is finshed or not started, 286 means abort
             if  (selected_folder_id, page) not in sync_status or not sync_status[(selected_folder_id, page)] == SyncStatus.RUNNING:
-                mail_list_template = "components/mail_list.html"
+                is_syncing = False
                 status_code = 286
 
             # Sync is running, 200 means it returns htmx swap
             else:
-                mail_list_template = "components/mail_list_polling.html"
+                is_syncing = True
                 status_code = 200
 
             folder_html = render_template("components/folder_list.html", folders=folders, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id)
@@ -126,7 +126,7 @@ def home():
             toolbar_html = render_template("components/toolbar.html", selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, page_size=page_size, total_mails=total_mails, total_pages=total_pages)
             toolbar_oob = f'<div id="toolbar" hx-swap-oob="innerHTML">{toolbar_html}</div>'
                 
-            mail_html = render_template(mail_list_template, mails=decrypted_mails, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page)
+            mail_html = render_template("components/mail_list_container.html", mails=decrypted_mails, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, is_syncing=is_syncing)
 
             response = make_response(mail_html + folder_oob + toolbar_oob)
             response.status_code = status_code

@@ -1,0 +1,13 @@
+<div 
+    id="mail-list" 
+    hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page={{ page }}"
+    hx-trigger="scanComplete from:body"
+    hx-disinherit="hx-swap"
+    hx-swap="outerHTML"
+>
+    {% if is_syncing %}
+        {% include 'components/mail_list_polling.html' %}
+    {% else %}
+        {% include 'components/mail_list.html' %}
+    {% endif %}
+</div>

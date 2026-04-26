@@ -4,7 +4,7 @@
     hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ folder.id }}"
     hx-trigger="click"
     hx-target="#mail-list"
-    hx-swap="innerHTML"
+    hx-swap="outerHTML"
     class="flex items-center gap-2 px-3 py-1.5 mx-2 mt-1 rounded-md text-sm {{ 'bg-white/10 text-white' if folder.id == selected_folder_id else 'text-neutral-400 hover:bg-white/10 hover:text-white' }} transition-colors"
 >
     <!--

@@ -78,7 +78,7 @@ class VTClient:
             PermissionError: Throws a PermissionError if the Virustotal API key is wrong.
             RuntimeError: Throws a RuntimeError if the rate limit from Virustotal is reached.
         """
-        url = "https://www.virustotal.com/api/v3/urls/"
+        url = "https://www.virustotal.com/api/v3/urls"
         payload = { "url": f"{canonical_url}" }
         headers = {
             "accept": "application/json",

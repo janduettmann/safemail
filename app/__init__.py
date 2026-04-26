@@ -7,7 +7,7 @@ from flask_login import current_user, logout_user
 
 from app.extensions import db, login_manager, user_keys, scan_queue
 from app.config import Config
-from app.models import AppAccount
+from app.models import AppAccount, Mail
 from app.routes.scan import scan_bp
 from app.routes.mail_account import mail_account_bp
 from app.routes.app_account import app_account_bp
@@ -16,7 +16,7 @@ from app.services.mail_scan_service import MailScanService
 from app.services.vt_client import VTClient
 from app.enums import Verdict, ScanStatus
 
-
+logger = logging.getLogger(__name__)
 
 def create_app() -> Flask:
     """Create and configure the Flask application instance.
@@ -57,8 +57,16 @@ def create_app() -> Flask:
             vt_client = VTClient()
             while True:
                 mail_id = scan_queue.queue.get()
-                MailScanService().scan_mail(mail_id, vt_client)
-                scan_queue.complete()
+                try:
+                    MailScanService().scan_mail(mail_id, vt_client)
+                except Exception as e:
+                    logger.exception(f"MailScanService: {e}")
+                    mail = db.session.get(Mail, mail_id)
+                    if mail:
+                        mail.scan_status = ScanStatus.FAILED
+                        db.session.commit()
+                finally:
+                    scan_queue.complete()
 
     thread = threading.Thread(target=scan_worker, args=(app,), daemon=True)
     thread.start()

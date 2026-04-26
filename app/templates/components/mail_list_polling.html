@@ -1,6 +1,6 @@
 <div hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page={{ page }}"
      hx-trigger="every 0.5s"
      hx-target="#mail-list"
-     hx-swap="innerHTML">
+     hx-swap="outerHTML">
     {% include 'components/mail_list.html' %}
 </div>

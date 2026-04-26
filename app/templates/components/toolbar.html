@@ -5,7 +5,7 @@
         id="sync-btn" 
         hx-post="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page={{ page }}"
         hx-target="#mail-list"
-        hx-swap="innerHTML"
+        hx-swap="outerHTML"
         class="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/10 text-neutral-400 hover:bg-white/15 hover:text-white text-sm transition-colors"
     >
         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -20,6 +20,7 @@
         class="p-1 rounded hover:bg-white/10 transition-colors"
         hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page=1"
         hx-target="#mail-list"
+        hx-swap="outerHTML"
     >
         <i data-lucide="chevron-first" class="w-4 h-4"></i>
     </button>
@@ -27,6 +28,7 @@
         class="p-1 rounded hover:bg-white/10 transition-colors"
         hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page={{ page - 1 if page > 1 else page}}"
         hx-target="#mail-list"
+        hx-swap="outerHTML"
     >
         <i data-lucide="chevron-left" class="w-4 h-4"></i>
     </button>
@@ -34,6 +36,7 @@
         class="p-1 rounded hover:bg-white/10 transition-colors"
         hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page={{ page + 1 if page < total_pages else page}}"
         hx-target="#mail-list"
+        hx-swap="outerHTML"
     >
         <i data-lucide="chevron-right" class="w-4 h-4"></i>
     </button>
@@ -41,6 +44,7 @@
         class="p-1 rounded hover:bg-white/10 transition-colors"
         hx-get="/home?account_id={{ selected_account_id }}&folder_id={{ selected_folder_id }}&page={{ total_pages }}"
         hx-target="#mail-list"
+        hx-swap="outerHTML"
     >
         <i data-lucide="chevron-last" class="w-4 h-4"></i>
     </button>
