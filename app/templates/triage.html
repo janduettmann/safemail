@@ -59,29 +59,4 @@
         </div>
     </div>
 </div>
-
-<!-- ==================== JAVASCRIPT ==================== -->
-<script>
-    // ===== SELECT ALL =====
-    // Wenn "All" Checkbox geklickt wird, alle Mail-Checkboxen an/ausschalten
-    document.getElementById('select-all').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.mail-checkbox');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-        updateScanCount();
-    });
-
-    // ===== SCAN COUNT BADGE =====
-    // Zaehlt ausgewaehlte Mails und zeigt die Anzahl im Scan-Button
-    function updateScanCount() {
-        const checked = document.querySelectorAll('.mail-checkbox:checked').length;
-        const badge = document.getElementById('scan-count');
-        if (checked > 0) {
-            badge.textContent = checked;
-            badge.classList.remove('hidden');
-        } else {
-            badge.classList.add('hidden');
-        }
-    }
-
-</script>
 {% endblock %}

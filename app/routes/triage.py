@@ -88,8 +88,10 @@ def home():
         if not selected_folder_id:
             selected_folder_id = _get_selected_folder_id(folders, selected_account_id) 
 
-        triage_service: TriageService = TriageService()
-        mails: Sequence[Mail] = triage_service.get_mails_page(selected_folder_id, page, page_size, page_uids[selected_folder_id, page])
+        if not selected_account_id or not selected_folder_id:
+            return redirect(url_for('home.home'))
+
+        mails: Sequence[Mail] = TriageService.get_mails_page(selected_folder_id, page, page_size, page_uids[selected_folder_id, page])
 
         if not mails:
             if (selected_folder_id, page) not in sync_status:
@@ -123,7 +125,7 @@ def home():
             folder_html = render_template("components/folder_list.html", folders=folders, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id)
             folder_oob = f'<nav id="folder-list" hx-swap-oob="innerHTML"><span class="px-3 text-xs text-neutral-500 uppercase tracking-wider">Folders</span>{folder_html}</nav>'
 
-            toolbar_html = render_template("components/toolbar.html", selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, page_size=page_size, total_mails=total_mails, total_pages=total_pages)
+            toolbar_html = render_template("components/toolbar.html", selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, page_size=page_size, total_mails=total_mails, total_pages=total_pages, is_syncing=is_syncing)
             toolbar_oob = f'<div id="toolbar" hx-swap-oob="innerHTML">{toolbar_html}</div>'
                 
             mail_html = render_template("components/mail_list_container.html", mails=decrypted_mails, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, is_syncing=is_syncing)
@@ -150,16 +152,33 @@ def home():
         )
 
     if request.method == "POST": 
-        if (selected_folder_id, page) not in sync_status:
+        if not selected_account_id or not selected_folder_id:
+            return redirect(url_for('home.home'))
+
+        folders = Folder.query.filter(Folder.account_id == selected_account_id).all()
+        if not folders:
+            return redirect(url_for('home.home'))
+
+        mails: Sequence[Mail] = TriageService.get_mails_page(selected_folder_id, page, page_size, page_uids[selected_folder_id, page])
+
+        total_mails: int = _get_total_mails(selected_folder_id, folders)
+        total_pages = ceil(total_mails/page_size)
+
+        decrypted_mails = DecryptedMail.decrypt_mails(mails=mails, data_key=data_key) 
+        if (selected_folder_id, page) not in sync_status or sync_status[selected_folder_id, page] == SyncStatus.SYNCED:
             sync_status[(selected_folder_id, page)] = SyncStatus.RUNNING
-            if not selected_account_id or not selected_folder_id:
-                return redirect(url_for('home.home'))
             app = current_app._get_current_object()
             thread = threading.Thread(target=sync_mails, args=(app_account.id, selected_account_id, selected_folder_id, page, page_size, app))
             thread.start()
+
+        mail_html = render_template('components/mail_list_container.html', mails=decrypted_mails, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, is_syncing=True)
+
+        toolbar_html = render_template("components/toolbar.html", selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, page_size=page_size, total_mails=total_mails, total_pages=total_pages, is_syncing=True)
+        toolbar_oob = f'<div id="toolbar" hx-swap-oob="innerHTML">{toolbar_html}</div>'
+
+        return mail_html + toolbar_oob
         
-        return render_template('components/mail_list_polling.html', mails=mails, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page)
-        
+
 def _get_selected_folder_id(folders: List[List[Folder]], selected_account_id: int) -> int:
     """Return the folder id of the inbox, or the last folder as fallback.
 

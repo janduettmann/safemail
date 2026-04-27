@@ -8,6 +8,7 @@ from flask_login import current_user, logout_user
 from app.extensions import db, login_manager, user_keys, scan_queue
 from app.config import Config
 from app.models import AppAccount, Mail
+from app.routes.settings import settings_bp
 from app.routes.scan import scan_bp
 from app.routes.mail_account import mail_account_bp
 from app.routes.app_account import app_account_bp
@@ -76,6 +77,7 @@ def create_app() -> Flask:
     app.register_blueprint(mail_account_bp)
     app.register_blueprint(app_account_bp)
     app.register_blueprint(triage_bp)
+    app.register_blueprint(settings_bp)
 
     login_manager.login_view = "app_account.login" # type: ignore
 

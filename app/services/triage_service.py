@@ -7,8 +7,8 @@ from app.extensions import db
 
 class TriageService:
     """Service for querying mails in the triage view with pagination."""
-
-    def get_mails_page(self, folder_id: int, page: int, page_size: int, page_uids: set[int]) -> Sequence[Mail]:
+    @staticmethod
+    def get_mails_page(folder_id: int, page: int, page_size: int, page_uids: set[int]) -> Sequence[Mail]:
         """Fetch mails for a folder page by filtering on pre-calculated IMAP UIDs.
 
         Uses UID-based filtering instead of OFFSET/LIMIT to support on-demand
