@@ -1,4 +1,4 @@
-<!-- Platzhalter wenn keine Mail ausgewaehlt -->
+<!-- Placeholder shown when no mail is selected. -->
 {% if not mail %}
     <div id="detail-placeholder" class="flex items-center justify-center h-full">
         <div class="text-center text-neutral-500">
@@ -8,7 +8,7 @@
     </div>
 
 {% else %}
-    <!-- Detail-Inhalt (hidden bis eine Mail geklickt wird) -->
+    <!-- Detail content (hidden until a mail is clicked). -->
     <div id="detail-content" class="p-6 flex flex-col h-full">
         <div class="mb-6">
         <h2 id="detail-subject" class="text-lg text-white font-medium mb-3">{{ mail.subject }}</h2>
@@ -62,9 +62,9 @@
                 </div>
             </div>
         </div>
-        <!-- Trennlinie -->
+        <!-- Divider -->
         <hr class="border-white/10 mb-4">
-        <!-- Mail-Body Platzhalter -->
+        <!-- Mail body container -->
         <div id="detail-body" class="text-sm text-neutral-300 leading-relaxed flex-1">
             {% if mail.html %}
                 <iframe class="w-full h-full rounded-2xl" sandbox srcdoc="{{ mail.html | e}}"></iframe>

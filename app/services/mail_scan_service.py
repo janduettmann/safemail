@@ -13,9 +13,31 @@ from app.extensions import db
 logger = logging.getLogger(__name__)
 
 class MailScanService:
+    """Coordinates the full VirusTotal scan lifecycle for a single mail.
+
+    A scan consists of three phases:
+        1. ``scan_urls`` — request URL reports for every canonical URL
+           extracted from the mail.
+        2. ``scan_files`` — request file reports for every attachment hash.
+        3. ``aggregate_mail_verdict`` — derive the mail-level verdict and
+           status from the worst child verdict.
+
+    All methods commit incrementally so the polling status bar can
+    observe progress across transactions.
+    """
 
     def scan_mail(self, mail_id: int, vt_client: VTClient) -> None:
+        """Runs the full scan pipeline for one mail.
 
+        Sets the mail's ``scan_status`` to RUNNING (committed immediately
+        for cross-transaction visibility), then scans URLs, files, and
+        aggregates the result.
+
+        Args:
+            mail_id: Database id of the ``Mail`` to scan.
+            vt_client: A configured VirusTotal client used for all
+                outbound API calls.
+        """
         mail = db.session.get(Mail, mail_id)
 
         if not mail:
@@ -29,6 +51,19 @@ class MailScanService:
         self.aggregate_mail_verdict(mail_id)
 
     def aggregate_mail_verdict(self, mail_id: int) -> None:
+        """Derives the mail-level verdict from its scanned children.
+
+        Selects all canonical URLs and files associated with the mail
+        through their occurrence rows and applies these rules:
+
+        - No children → COMPLETED / BENIGN.
+        - All children FAILED → FAILED / UNKNOWN.
+        - Otherwise → COMPLETED with the worst child's verdict and its
+          malicious/total engine counts.
+
+        Args:
+            mail_id: Database id of the ``Mail`` to update.
+        """
         mail = db.session.get(Mail, mail_id)
 
         if not mail:
@@ -76,6 +111,16 @@ class MailScanService:
         return
 
     def scan_urls(self, mail_id: int, vt_client: VTClient) -> None:
+        """Scans every canonical URL referenced by the given mail.
+
+        For each URL the row is moved through RUNNING → COMPLETED/FAILED.
+        On unrecoverable authentication errors the loop aborts early so
+        the rest of the queue is not exhausted against a broken key.
+
+        Args:
+            mail_id: Database id of the ``Mail`` whose URLs should be scanned.
+            vt_client: VirusTotal client used to request URL reports.
+        """
         canonical_urls_stmt = (
         select(CanonicalUrl)
         .join(OccurrenceUrl, OccurrenceUrl.canonical_id == CanonicalUrl.id)
@@ -114,6 +159,18 @@ class MailScanService:
 
 
     def scan_files(self, mail_id: int, vt_client: VTClient) -> None:
+        """Scans every canonical attachment referenced by the given mail.
+
+        Each file row is moved through RUNNING → COMPLETED/FAILED.
+        VirusTotal returns ``None`` for hashes it has never seen, in
+        which case the file is marked COMPLETED with no verdict change
+        but its ``checked_at`` timestamp is updated.
+
+        Args:
+            mail_id: Database id of the ``Mail`` whose attachments should
+                be scanned.
+            vt_client: VirusTotal client used to request file reports.
+        """
         canonical_files_stmt = (
         select(CanonicalFile)
         .join(OccurrenceFile, OccurrenceFile.canonical_id == CanonicalFile.id)

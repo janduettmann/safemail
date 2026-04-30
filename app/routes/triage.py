@@ -56,7 +56,7 @@ def home():
     total_pages: int = 0
 
     if request.method == "GET":
-        # 2. Mail-Accounts des Users laden
+        # Load the user's IMAP accounts.
         mail_accounts = MailAccount.query.filter(MailAccount.owner_id == app_account.id).all()
 
         if mail_accounts:
@@ -108,8 +108,7 @@ def home():
         logger.debug(f"{total_mails=} | {page_size=}")
         total_pages = ceil(total_mails/page_size)
         
-        # 8. Total Mails zählen (für "1-50 of 1234")
-        # 9. Alles ans Template übergeben
+        # Count total mails (used for "1-50 of 1234") and pass everything to the template.
 
         if request.headers.get("HX-Request"):
             # Sync is finshed or not started, 286 means abort
@@ -271,9 +270,10 @@ def sync_mails(app_account_id: int, selected_account_id: int, selected_folder_id
             logger.error("Invalid username or password!")
             sync_status[(selected_folder_id, page)] = SyncStatus.FAILED_AUTH
             return
-        except Exception as e:                                        # ← NEU
+        except Exception as e:
+            # Catch-all for unexpected errors so the worker thread does not crash silently.
             logger.error(f"Unexpected sync error: {e}")
-            sync_status[(selected_folder_id, page)] = SyncStatus.FAILED_HOST  # oder ein neuer FAILED-Status
+            sync_status[(selected_folder_id, page)] = SyncStatus.FAILED_HOST
             return
 
         sync_status[(selected_folder_id, page)] = SyncStatus.SYNCED

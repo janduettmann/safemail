@@ -8,26 +8,26 @@
 
     <!-- ==================== SIDEBAR ==================== -->
     <!--
-        w-14: Breite eingeklappt (56px, genug für Icons)
-        w-56: Breite ausgeklappt (224px, Icons + Text)
-        transition-all duration-200: Smooth Animation beim Wechsel
-        flex flex-col: Vertikal stapeln (Logo oben, Nav mitte, Settings unten)
-        shrink-0: Sidebar soll NICHT schrumpfen wenn Content breit wird
+        w-14: collapsed width (56px, icons only).
+        w-56: expanded width (224px, icons + text).
+        transition-all duration-200: smooth animation when toggling.
+        flex flex-col: stack vertically (logo top, nav middle, settings bottom).
+        shrink-0: sidebar must NOT shrink when the content area gets wide.
     -->
     <aside id="sidebar" class="w-14 h-full bg-[#212121] border-r border-white/10 flex flex-col transition-all duration-200 shrink-0">
 
-        <!-- === TOP: Logo + Toggle === -->
+        <!-- === TOP: logo + toggle === -->
         <div class="p-3 flex items-center gap-3">
-            <!-- Toggle-Button: Klappt Sidebar auf/zu -->
+            <!-- Toggle button: expands/collapses the sidebar. -->
             <button onclick="toggleSidebar()" class="p-1.5 rounded-md hover:bg-white/10 text-neutral-400 hover:text-white transition-colors">
                 <i data-lucide="panel-left" class="w-5 h-5"></i>
             </button>
-            <!-- Label: Nur sichtbar wenn ausgeklappt -->
+            <!-- Label: only visible when expanded. -->
             <span class="sidebar-label text-white font-semibold text-sm hidden whitespace-nowrap">SafeMail</span>
         </div>
 
-        <!-- === MITTE: Haupt-Navigation (wächst, drückt Footer nach unten) === -->
-        <!-- flex-1: Nimmt allen verfügbaren Platz ein -->
+        <!-- === MIDDLE: primary nav (grows, pushes the footer down) === -->
+        <!-- flex-1: claims all remaining vertical space. -->
         <nav class="flex-1 flex flex-col gap-1 px-2 mt-2">
             {% set nav_items = [
                 ('home', 'Home', '/home'),
@@ -42,7 +42,7 @@
             {% endfor %}
         </nav>
 
-        <!-- === UNTEN: Sekundäre Links === -->
+        <!-- === BOTTOM: secondary links === -->
         <div class="flex flex-col gap-1 px-2 pb-3">
             {% set bottom_items = [
                 ('circle-user-round', 'Account', '/account'),
@@ -58,7 +58,7 @@
     </aside>
 
     <!-- ==================== CONTENT ==================== -->
-    <!-- flex-1: Nimmt den restlichen Platz neben der Sidebar ein -->
+    <!-- flex-1: fills the remaining space next to the sidebar. -->
     <main class="flex-1 overflow-auto">
         {% block app_content %}
         {% endblock %}
@@ -71,11 +71,11 @@
         const sidebar = document.getElementById('sidebar');
         const labels = document.querySelectorAll('.sidebar-label');
 
-        // Toggle Breite: w-14 (eingeklappt) ↔ w-56 (ausgeklappt)
+        // Toggle width: w-14 (collapsed) ↔ w-56 (expanded).
         sidebar.classList.toggle('w-14');
         sidebar.classList.toggle('w-56');
 
-        // Toggle Labels: hidden ↔ sichtbar
+        // Toggle labels: hidden ↔ visible.
         labels.forEach(label => label.classList.toggle('hidden'));
     }
 </script>

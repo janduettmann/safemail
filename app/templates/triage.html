@@ -11,14 +11,14 @@
     <!-- ==================== Column 1: Folders ==================== -->
     <div class="w-52 bg-[#1a1a1a] border-r border-white/10 flex flex-col shrink-0">
 
-        <!-- Account-Selection -->
+        <!-- Account selection -->
         <div class="p-3 border-b border-white/10">
             <span class="text-xs text-neutral-500 uppercase tracking-wider">Account</span>
             <!--
-                onchange: Wenn der User einen anderen Account wählt,
-                wird die Seite mit dem neuen account_id neu geladen.
-                this.value = der value des ausgewählten <option>
-                selected: Markiert den aktuell ausgewählten Account im Dropdown
+                onchange: when the user picks a different account, reload
+                the page with the new account_id query parameter.
+                ``this.value`` is the value of the chosen <option>.
+                ``selected`` marks the currently active account in the dropdown.
             -->
             <select id="account-select" class="mt-1 w-full bg-[#212121] text-white text-sm rounded-md border border-white/10 px-2 py-1.5 focus:outline-none focus:border-white/30"
                     onchange="window.location.href='/home?account_id=' + this.value">

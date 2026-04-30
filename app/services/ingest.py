@@ -73,7 +73,7 @@ class Ingester:
         """
         canonical_groups: defaultdict[str, list[str]] = defaultdict(list)
         for url in urls:
-            # Gets the last two entries sperated by comma und puts them in lowercase
+            # Take the last two dot-separated labels of the netloc and lowercase them.
             canonical_url = f"https://{'.'.join(urlsplit(url).netloc.split('.')[-2:]).lower()}"
             canonical_groups[canonical_url].append(url)
 

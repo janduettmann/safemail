@@ -8,21 +8,21 @@
 {% block app_content %}
 {# ============================================================
    SETTINGS PAGE
-   - Erbt von base_app.html → Haupt-Sidebar bleibt links erhalten
-   - Eigene Sub-Sidebar (Settings-Nav) im Content-Bereich
-   - Style-Konventionen analog zu /home (triage.html):
-       Sub-Sidebar:  bg-[#1a1a1a]  border-white/10
-       Hover/Active: bg-white/10  /  bg-white/5
+   - Extends base_app.html → main sidebar stays on the left.
+   - Renders its own sub-sidebar (settings nav) inside the content area.
+   - Style conventions mirror /home (triage.html):
+       Sub-sidebar: bg-[#1a1a1a]  border-white/10
+       Hover/active: bg-white/10  /  bg-white/5
        Cards:        bg-[#1a1a1a] border border-white/10 rounded-md
        Inputs:       bg-[#212121] border-white/10
        Sections:     text-xs text-neutral-500 uppercase tracking-wider
    ============================================================ #}
 <div class="flex h-full">
 
-    <!-- ==================== SUB-SIDEBAR (Settings-Nav) ==================== -->
+    <!-- ==================== SUB-SIDEBAR (settings nav) ==================== -->
     <div class="w-52 bg-[#1a1a1a] border-r border-white/10 flex flex-col shrink-0">
 
-        <!-- Zurück-Button -->
+        <!-- Back button -->
         <div class="p-3 border-b border-white/10">
             <a href="/home" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-neutral-400 hover:bg-white/10 hover:text-white transition-colors">
                 <i data-lucide="arrow-left" class="w-4 h-4 shrink-0"></i>
@@ -30,19 +30,19 @@
             </a>
         </div>
 
-        <!-- Settings-Nav -->
+        <!-- Settings nav -->
         <nav class="flex-1 overflow-y-auto py-2">
             <span class="px-3 text-xs text-neutral-500 uppercase tracking-wider">Einstellungen</span>
 
             {% set settings_nav = [
-                ('account', 'circle-user-round', 'App-Account'),
-                ('mail',    'mail',              'Mail-Accounts'),
-                ('scan',    'shield',            'Scan-Verhalten'),
-                ('other',   'settings',          'Sonstiges')
+                ('account',       'circle-user-round', 'App-Account'),
+                ('mail_accounts', 'mail',              'Mail-Accounts'),
+                ('scan_behavior', 'shield',            'Scan-Verhalten'),
+                ('other',         'settings',          'Sonstiges')
             ] %}
             {% for page, icon, label in settings_nav %}
-                <a class="settings-nav-item flex items-center gap-2 px-3 py-1.5 mx-2 mt-1 rounded-md text-sm text-neutral-400 hover:bg-white/10 hover:text-white cursor-pointer transition-colors {% if loop.first %}is-active bg-white/10 text-white{% endif %}"
-                   data-page="{{ page }}">
+                <a href="{{ url_for('settings.settings_page', page=page) }}"
+                   class="flex items-center gap-2 px-3 py-1.5 mx-2 mt-1 rounded-md text-sm transition-colors {{ 'bg-white/10 text-white' if active_page == page else 'text-neutral-400 hover:bg-white/10 hover:text-white' }}">
                     <i data-lucide="{{ icon }}" class="w-4 h-4 shrink-0"></i>
                     <span>{{ label }}</span>
                 </a>
@@ -57,286 +57,16 @@
 
     <!-- ==================== CONTENT ==================== -->
     <main class="flex-1 overflow-y-auto min-w-0">
-
-        <!-- ==================== PAGE: APP-ACCOUNT ==================== -->
-        <section data-page-content="account" class="px-8 py-6 max-w-4xl">
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                <h1 class="text-xl font-semibold text-white">App-Account</h1>
-                <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
-                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
-                    <span class="text-neutral-300">Alice Example</span>
-                </div>
-            </div>
-
-            <!-- Card: Profil -->
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="text-sm font-semibold text-white">Profil</h3>
-                </div>
-                <div class="p-4">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-xs text-neutral-400 mb-1.5">Vorname</label>
-                            <input type="text" value="Alice"
-                                class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-neutral-400 mb-1.5">Nachname</label>
-                            <input type="text" value="Example"
-                                class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-xs text-neutral-400 mb-1.5">E-Mail</label>
-                        <input type="email" value="alice@example.com"
-                            class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                        <div class="text-xs text-neutral-500 mt-1.5">Diese Adresse wird für Login und Sicherheits-Benachrichtigungen verwendet.</div>
-                    </div>
-                    <button class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Änderungen speichern</button>
-                </div>
-            </div>
-
-            <!-- Card: Passwort -->
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="text-sm font-semibold text-white">Passwort</h3>
-                </div>
-                <div class="p-4">
-                    <div class="mb-4">
-                        <label class="block text-xs text-neutral-400 mb-1.5">Aktuelles Passwort</label>
-                        <input type="password" placeholder="••••••••••"
-                            class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-rose-500/60 transition-colors">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-xs text-neutral-400 mb-1.5">Neues Passwort</label>
-                            <input type="password"
-                                class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-neutral-400 mb-1.5">Bestätigung</label>
-                            <input type="password"
-                                class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                        </div>
-                    </div>
-                    <button class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Passwort ändern</button>
-                </div>
-            </div>
-
-            <!-- Card: Gefahrenzone -->
-            <div class="bg-[#1a1a1a] border border-red-500/20 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-red-500/20">
-                    <h3 class="text-sm font-semibold text-red-400">Gefahrenzone</h3>
-                </div>
-                <div class="p-4">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <div class="text-sm font-medium text-white mb-1">Account löschen</div>
-                            <div class="text-xs text-neutral-400 max-w-md">Löscht deinen SafeMail-Account, alle verbundenen IMAP-Konfigurationen und sämtliche Scan-Historie. Diese Aktion ist nicht umkehrbar.</div>
-                        </div>
-                        <button class="px-3 py-1.5 bg-transparent hover:bg-red-500 border border-red-500/60 hover:border-red-500 rounded-md text-sm font-medium text-red-400 hover:text-white transition-colors whitespace-nowrap">Account löschen</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== PAGE: MAIL-ACCOUNTS ==================== -->
-        <section data-page-content="mail" class="px-8 py-6 max-w-4xl" hidden>
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                <h1 class="text-xl font-semibold text-white">Mail-Accounts</h1>
-                <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
-                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
-                    <span class="text-neutral-300">Alice Example</span>
-                </div>
-            </div>
-
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-white">IMAP-Accounts verwalten</h3>
-                    <a href="{{ url_for('mail_account.add_mail_account') }}" class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 rounded-md text-xs font-medium text-white transition-colors">+ Account hinzufügen</a>
-                </div>
-
-                <!-- IMAP-Accounts Liste -->
-                <div>
-                    {% set imap_accounts = [
-                        ('alice@example.com', 'imap.mail.me.com:993 · SSL',     '12. Feb. 2026', 'vor 4 Min.',  'ok',   'verbunden'),
-                        ('bob@example.org',     'mail.example.org:993 · SSL', '5. Okt. 2025', 'vor 12 Min.', 'ok',   'verbunden'),
-                        ('carol@example.net',    'imap.example.net:993 · SSL',          '18. März 2026','vor 2 Tagen', 'warn', 'Auth fehlgeschlagen')
-                    ] %}
-                    {% for email, server, added, sync, status, badge in imap_accounts %}
-                    <div class="flex items-center gap-3 px-4 py-3 {% if not loop.first %}border-t border-white/5{% endif %} hover:bg-white/5 transition-colors">
-                        <div class="w-9 h-9 shrink-0 rounded-md bg-white/5 border border-white/10 flex items-center justify-center">
-                            <i data-lucide="mail" class="w-4 h-4 text-rose-400"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-sm font-medium text-white truncate">{{ email }}</span>
-                                {% if status == 'ok' %}
-                                    <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-green-500/15 text-green-400 border border-green-500/20">{{ badge }}</span>
-                                {% else %}
-                                    <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-red-500/15 text-red-400 border border-red-500/20">{{ badge }}</span>
-                                {% endif %}
-                            </div>
-                            <div class="font-mono text-xs text-neutral-400 truncate">{{ server }}</div>
-                            <div class="text-xs text-neutral-500 mt-0.5">
-                                Hinzugefügt am {{ added }} — Letzter Sync:
-                                <span class="font-medium {% if status == 'ok' %}text-green-400{% else %}text-red-400{% endif %}">{{ sync }}</span>
-                            </div>
-                        </div>
-                        <div class="flex gap-1.5 shrink-0">
-                            <button class="px-2 py-1 bg-white/10 hover:bg-white/15 rounded-md text-xs text-neutral-300 hover:text-white transition-colors">Bearbeiten</button>
-                            <button class="px-2 py-1 bg-white/10 hover:bg-white/15 rounded-md text-xs text-neutral-300 hover:text-white transition-colors">Test</button>
-                            <button class="px-2 py-1 bg-transparent hover:bg-red-500 border border-red-500/60 rounded-md text-xs text-red-400 hover:text-white transition-colors">Entfernen</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== PAGE: SCAN-VERHALTEN ==================== -->
-        <section data-page-content="scan" class="px-8 py-6 max-w-4xl" hidden>
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                <h1 class="text-xl font-semibold text-white">Scan-Verhalten</h1>
-                <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
-                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
-                    <span class="text-neutral-300">Alice Example</span>
-                </div>
-            </div>
-
-            <!-- Card: Automatik (Toggles) -->
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="text-sm font-semibold text-white">Automatik</h3>
-                </div>
-                <div class="p-4">
-                    {% set scan_toggles = [
-                        ('Auto-Scan beim Sync', 'Neue eingehende Mails werden direkt nach dem IMAP-Sync gegen VirusTotal, Heuristiken und URL-Blocklisten geprüft. Verdächtige Mails landen automatisch im Quarantäne-Ordner.', true),
-                        ('Anhänge mitscannen', 'Erweitert den Scan auf alle Anhänge (PDF, Office, Archive). Erhöht die API-Quota-Nutzung deutlich.', true),
-                        ('Bereits gelesene Mails überspringen', 'Mails mit \\Seen-Flag werden beim Sync nicht erneut gescannt.', false)
-                    ] %}
-                    {% for title, desc, is_on in scan_toggles %}
-                    <div class="flex items-start justify-between gap-6 py-3 {% if not loop.first %}border-t border-white/5{% endif %} {% if loop.first %}pt-0{% endif %} {% if loop.last %}pb-0{% endif %}">
-                        <div>
-                            <div class="text-sm font-medium text-white mb-0.5">{{ title }}</div>
-                            <div class="text-xs text-neutral-400 max-w-md">{{ desc }}</div>
-                        </div>
-                        <div class="settings-toggle relative w-9 h-5 rounded-full cursor-pointer transition-colors shrink-0 mt-0.5 {{ 'bg-rose-500 toggle-on' if is_on else 'bg-white/10' }}" data-toggle></div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Card: VirusTotal API-Key -->
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="text-sm font-semibold text-white">VirusTotal API-Key</h3>
-                </div>
-                <div class="p-4">
-                    <label class="block text-xs text-neutral-400 mb-1.5">Eigener API-Key (optional)</label>
-                    <input type="password" placeholder="Leer lassen, um globalen Server-Key zu verwenden"
-                        class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-rose-500/60 transition-colors">
-                    <div class="text-xs text-neutral-500 mt-1.5">
-                        Wird kein Key angegeben, nutzt SafeMail den globalen Key aus
-                        <span class="font-mono text-xs bg-white/5 px-1.5 py-0.5 rounded text-neutral-300">VT_API_KEY</span>
-                        der Server-Konfiguration. Eigene Keys haben deutlich höhere Quotas (Public API: 4 req/min, 500/day).
-                    </div>
-                    <div class="flex gap-2 mt-3">
-                        <button class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Speichern</button>
-                        <button class="px-3 py-1.5 bg-white/10 hover:bg-white/15 rounded-md text-sm text-neutral-300 hover:text-white transition-colors">Key testen</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Schwellwerte -->
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="text-sm font-semibold text-white">Schwellwerte</h3>
-                </div>
-                <div class="p-4 grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-neutral-400 mb-1.5">Quarantäne ab Score</label>
-                        <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                            <option>≥ 3 Engines (empfohlen)</option>
-                            <option>≥ 5 Engines</option>
-                            <option>≥ 1 Engine (paranoid)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-neutral-400 mb-1.5">Scan-Tiefe</label>
-                        <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                            <option>Standard</option>
-                            <option>Tief (alle URLs auflösen)</option>
-                            <option>Schnell</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== PAGE: SONSTIGES ==================== -->
-        <section data-page-content="other" class="px-8 py-6 max-w-4xl" hidden>
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                <h1 class="text-xl font-semibold text-white">Sonstiges</h1>
-                <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
-                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
-                    <span class="text-neutral-300">Alice Example</span>
-                </div>
-            </div>
-
-            <!-- Card: Erscheinungsbild -->
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="text-sm font-semibold text-white">Erscheinungsbild</h3>
-                </div>
-                <div class="p-4 grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-neutral-400 mb-1.5">Theme</label>
-                        <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                            <option>Dark (Standard)</option>
-                            <option disabled>Light (in Vorbereitung)</option>
-                            <option disabled>System</option>
-                        </select>
-                        <div class="text-xs text-neutral-500 mt-1.5">Light-Theme ist für ein zukünftiges Release geplant.</div>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-neutral-400 mb-1.5">Sprache</label>
-                        <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
-                            <option>Deutsch</option>
-                            <option>English</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Sitzung -->
-            <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
-                <div class="px-4 py-3 border-b border-white/10">
-                    <h3 class="text-sm font-semibold text-white">Sitzung</h3>
-                </div>
-                <div class="p-4">
-                    <div class="flex items-start justify-between gap-4 pb-3">
-                        <div>
-                            <div class="text-sm font-medium text-white mb-0.5">Abmelden</div>
-                            <div class="text-xs text-neutral-400 max-w-md">Beendet die aktuelle Sitzung auf diesem Gerät. Andere Geräte bleiben angemeldet.</div>
-                        </div>
-                        <button class="px-3 py-1.5 bg-white/10 hover:bg-white/15 rounded-md text-sm text-neutral-300 hover:text-white transition-colors whitespace-nowrap">Abmelden</button>
-                    </div>
-                    <div class="flex items-start justify-between gap-4 pt-3 border-t border-white/5">
-                        <div>
-                            <div class="text-sm font-medium text-white mb-0.5">Alle Sitzungen abmelden</div>
-                            <div class="text-xs text-neutral-400 max-w-md">Erzwingt einen Logout auf allen Geräten und Browsern. Nützlich nach verlorenem Gerät.</div>
-                        </div>
-                        <button class="px-3 py-1.5 bg-transparent hover:bg-red-500 border border-red-500/60 rounded-md text-sm text-red-400 hover:text-white transition-colors whitespace-nowrap">Überall abmelden</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+        {#
+            Dynamic include: active_page is supplied by the route and is
+            guarded against path-traversal by the SETTINGS_PAGES whitelist.
+            The filename matches the page key (account.html, mail_accounts.html, ...).
+        #}
+        {% include 'components/settings/' ~ active_page ~ '.html' %}
     </main>
 </div>
 
-{# Toggle-Knob via ::after — Tailwind kann ::after-Pseudoelemente ohne Plugin nicht stylen #}
+{# Toggle knob via ::after — Tailwind cannot style ::after pseudo-elements without a plugin. #}
 <style>
     .settings-toggle::after {
         content: '';
@@ -351,24 +81,7 @@
 </style>
 
 <script>
-    // Sub-Sidebar-Tabs umschalten
-    document.querySelectorAll('.settings-nav-item').forEach(item => {
-        item.addEventListener('click', e => {
-            e.preventDefault();
-            // Active-State zurücksetzen
-            document.querySelectorAll('.settings-nav-item').forEach(i => {
-                i.classList.remove('is-active', 'bg-white/10', 'text-white');
-            });
-            item.classList.add('is-active', 'bg-white/10', 'text-white');
-            // Page anzeigen
-            const page = item.dataset.page;
-            document.querySelectorAll('[data-page-content]').forEach(s => {
-                s.hidden = s.dataset.pageContent !== page;
-            });
-        });
-    });
-
-    // Toggle-Switches
+    // Toggle switches (sub-sidebar tabs are now handled via real /settings/<page> routes).
     document.querySelectorAll('[data-toggle]').forEach(t => {
         t.addEventListener('click', () => {
             t.classList.toggle('toggle-on');

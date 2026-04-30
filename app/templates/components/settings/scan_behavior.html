@@ -1,0 +1,78 @@
+<section class="px-8 py-6 max-w-4xl">
+    <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+        <h1 class="text-xl font-semibold text-white">Scan-Verhalten</h1>
+        <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
+            <span class="text-neutral-300">Alice Example</span>
+        </div>
+    </div>
+
+    <!-- Card: Automatik (Toggles) -->
+    <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
+        <div class="px-4 py-3 border-b border-white/10">
+            <h3 class="text-sm font-semibold text-white">Automatik</h3>
+        </div>
+        <div class="p-4">
+            {% set scan_toggles = [
+                ('Auto-Scan beim Sync', 'Neue eingehende Mails werden direkt nach dem IMAP-Sync gegen VirusTotal, Heuristiken und URL-Blocklisten geprüft. Verdächtige Mails landen automatisch im Quarantäne-Ordner.', true),
+                ('Anhänge mitscannen', 'Erweitert den Scan auf alle Anhänge (PDF, Office, Archive). Erhöht die API-Quota-Nutzung deutlich.', true),
+                ('Bereits gelesene Mails überspringen', 'Mails mit \\Seen-Flag werden beim Sync nicht erneut gescannt.', false)
+            ] %}
+            {% for title, desc, is_on in scan_toggles %}
+            <div class="flex items-start justify-between gap-6 py-3 {% if not loop.first %}border-t border-white/5{% endif %} {% if loop.first %}pt-0{% endif %} {% if loop.last %}pb-0{% endif %}">
+                <div>
+                    <div class="text-sm font-medium text-white mb-0.5">{{ title }}</div>
+                    <div class="text-xs text-neutral-400 max-w-md">{{ desc }}</div>
+                </div>
+                <div class="settings-toggle relative w-9 h-5 rounded-full cursor-pointer transition-colors shrink-0 mt-0.5 {{ 'bg-rose-500 toggle-on' if is_on else 'bg-white/10' }}" data-toggle></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Card: VirusTotal API-Key -->
+    <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
+        <div class="px-4 py-3 border-b border-white/10">
+            <h3 class="text-sm font-semibold text-white">VirusTotal API-Key</h3>
+        </div>
+        <div class="p-4">
+            <label class="block text-xs text-neutral-400 mb-1.5">Eigener API-Key (optional)</label>
+            <input type="password" placeholder="Leer lassen, um globalen Server-Key zu verwenden"
+                class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-rose-500/60 transition-colors">
+            <div class="text-xs text-neutral-500 mt-1.5">
+                Wird kein Key angegeben, nutzt SafeMail den globalen Key aus
+                <span class="font-mono text-xs bg-white/5 px-1.5 py-0.5 rounded text-neutral-300">VT_API_KEY</span>
+                der Server-Konfiguration. Eigene Keys haben deutlich höhere Quotas (Public API: 4 req/min, 500/day).
+            </div>
+            <div class="flex gap-2 mt-3">
+                <button class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Speichern</button>
+                <button class="px-3 py-1.5 bg-white/10 hover:bg-white/15 rounded-md text-sm text-neutral-300 hover:text-white transition-colors">Key testen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card: Schwellwerte -->
+    <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
+        <div class="px-4 py-3 border-b border-white/10">
+            <h3 class="text-sm font-semibold text-white">Schwellwerte</h3>
+        </div>
+        <div class="p-4 grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs text-neutral-400 mb-1.5">Quarantäne ab Score</label>
+                <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
+                    <option>≥ 3 Engines (empfohlen)</option>
+                    <option>≥ 5 Engines</option>
+                    <option>≥ 1 Engine (paranoid)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-neutral-400 mb-1.5">Scan-Tiefe</label>
+                <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
+                    <option>Standard</option>
+                    <option>Tief (alle URLs auflösen)</option>
+                    <option>Schnell</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</section>

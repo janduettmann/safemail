@@ -1,0 +1,52 @@
+<section class="px-8 py-6 max-w-4xl">
+    <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+        <h1 class="text-xl font-semibold text-white">Mail-Accounts</h1>
+        <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
+            <span class="text-neutral-300">Alice Example</span>
+        </div>
+    </div>
+
+    <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
+        <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-white">IMAP-Accounts verwalten</h3>
+            <a href="{{ url_for('mail_account.add_mail_account') }}" class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 rounded-md text-xs font-medium text-white transition-colors">+ Account hinzufügen</a>
+        </div>
+
+        <!-- IMAP accounts list -->
+        <div>
+            {% set imap_accounts = [
+                ('alice@example.com', 'imap.mail.me.com:993 · SSL',     '12. Feb. 2026', 'vor 4 Min.',  'ok',   'verbunden'),
+                ('bob@example.org',     'mail.example.org:993 · SSL', '5. Okt. 2025', 'vor 12 Min.', 'ok',   'verbunden'),
+                ('carol@example.net',    'imap.example.net:993 · SSL',          '18. März 2026','vor 2 Tagen', 'warn', 'Auth fehlgeschlagen')
+            ] %}
+            {% for email, server, added, sync, status, badge in imap_accounts %}
+            <div class="flex items-center gap-3 px-4 py-3 {% if not loop.first %}border-t border-white/5{% endif %} hover:bg-white/5 transition-colors">
+                <div class="w-9 h-9 shrink-0 rounded-md bg-white/5 border border-white/10 flex items-center justify-center">
+                    <i data-lucide="mail" class="w-4 h-4 text-rose-400"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <span class="text-sm font-medium text-white truncate">{{ email }}</span>
+                        {% if status == 'ok' %}
+                            <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-green-500/15 text-green-400 border border-green-500/20">{{ badge }}</span>
+                        {% else %}
+                            <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-red-500/15 text-red-400 border border-red-500/20">{{ badge }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="font-mono text-xs text-neutral-400 truncate">{{ server }}</div>
+                    <div class="text-xs text-neutral-500 mt-0.5">
+                        Hinzugefügt am {{ added }} — Letzter Sync:
+                        <span class="font-medium {% if status == 'ok' %}text-green-400{% else %}text-red-400{% endif %}">{{ sync }}</span>
+                    </div>
+                </div>
+                <div class="flex gap-1.5 shrink-0">
+                    <button class="px-2 py-1 bg-white/10 hover:bg-white/15 rounded-md text-xs text-neutral-300 hover:text-white transition-colors">Bearbeiten</button>
+                    <button class="px-2 py-1 bg-white/10 hover:bg-white/15 rounded-md text-xs text-neutral-300 hover:text-white transition-colors">Test</button>
+                    <button class="px-2 py-1 bg-transparent hover:bg-red-500 border border-red-500/60 rounded-md text-xs text-red-400 hover:text-white transition-colors">Entfernen</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
