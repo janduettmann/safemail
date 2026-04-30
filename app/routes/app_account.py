@@ -24,6 +24,8 @@ def signup():
     if request.method == "POST":
         username: str = request.form["username"]
         password: bytes = request.form["password"].encode(encoding="utf-8")
+        firstname: str = request.form["firstname"]
+        lastname: str = request.form["lastname"]
 
         password_salt: bytes = bcrypt.gensalt()
         password_hash: bytes = bcrypt.hashpw(password=password, salt=password_salt)
@@ -36,6 +38,8 @@ def signup():
         new_app_account: AppAccount = AppAccount(
             username = username,
             password_hash = password_hash,
+            firstname = firstname,
+            lastname = lastname,
             encryption_salt = encryption_salt,
             encrypted_data_key = encrypted_data_key
         )

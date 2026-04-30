@@ -65,8 +65,8 @@ class AppAccount(UserMixin, db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(255),index=True, unique=True, nullable=False)
-    first_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    firstname: Mapped[str] = mapped_column(String(255), nullable=False)
+    lastname: Mapped[str] = mapped_column(String(255), nullable=False)
     password_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     encryption_salt: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     encrypted_data_key: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
