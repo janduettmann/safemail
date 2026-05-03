@@ -13,7 +13,7 @@ SETTINGS_PAGES: set[str] = {"account", "mail_accounts", "scan_behavior", "other"
 @login_required
 def settings():
     """Redirects bare ``/settings`` to the default sub-page."""
-    return redirect(url_for("settings.settings_page", page="mail_accounts"))
+    return redirect(url_for("settings.settings_page", page="account"))
 
 
 @settings_bp.route(rule="/settings/<page>", methods=["GET"])

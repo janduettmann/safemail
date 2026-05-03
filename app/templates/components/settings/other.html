@@ -2,8 +2,8 @@
     <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
         <h1 class="text-xl font-semibold text-white">Sonstiges</h1>
         <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
-            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
-            <span class="text-neutral-300">Alice Example</span>
+            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">{{ current_user.initials }}</div>
+            <span class="text-neutral-300">{{ current_user.firstname }} {{ current_user.lastname }}</span>
         </div>
     </div>
 
@@ -15,7 +15,7 @@
         <div class="p-4 grid grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs text-neutral-400 mb-1.5">Theme</label>
-                <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
+                <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
                     <option>Dark (Standard)</option>
                     <option disabled>Light (in Vorbereitung)</option>
                     <option disabled>System</option>
@@ -24,7 +24,7 @@
             </div>
             <div>
                 <label class="block text-xs text-neutral-400 mb-1.5">Sprache</label>
-                <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/60 transition-colors">
+                <select class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
                     <option>Deutsch</option>
                     <option>English</option>
                 </select>

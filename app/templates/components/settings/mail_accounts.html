@@ -2,16 +2,73 @@
     <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
         <h1 class="text-xl font-semibold text-white">Mail-Accounts</h1>
         <div class="flex items-center gap-2 pl-1 pr-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">
-            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">JW</div>
-            <span class="text-neutral-300">Alice Example</span>
+            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-[10px] font-bold text-white">{{ current_user.initials }}</div>
+            <span class="text-neutral-300">{{ current_user.firstname }} {{ current_user.lastname }}</span>
         </div>
     </div>
 
     <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
         <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-white">IMAP-Accounts verwalten</h3>
-            <a href="{{ url_for('mail_account.add_mail_account') }}" class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 rounded-md text-xs font-medium text-white transition-colors">+ Account hinzufügen</a>
+            <button type="button"
+                    id="add-mail-account-btn"
+                    onclick="document.getElementById('add-mail-account-form').classList.toggle('hidden');"
+                    class="px-2.5 py-1 bg-rose-500 hover:bg-rose-600 rounded-md text-xs font-medium text-white transition-colors">+ Account hinzufügen</button>
         </div>
+
+        <!-- Add mail account form (collapsed by default) -->
+        <form id="add-mail-account-form"
+              method="POST"
+              action="{{ url_for('mail_account.add_mail_account') }}"
+              class="hidden px-4 py-4 border-b border-white/10 bg-white/[0.02]">
+            <div class="mb-3">
+                <label class="block text-xs text-neutral-400 mb-1">Anzeigename</label>
+                <input type="text" name="display_name" placeholder="z. B. iCloud Privat"
+                       class="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 [&:user-invalid]:border-red-500/60">
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mb-3">
+                <div>
+                    <label class="block text-xs text-neutral-400 mb-1">IMAP-Server</label>
+                    <input type="text" name="imap_server" placeholder="imap.mail.me.com" required
+                           class="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 [&:user-invalid]:border-red-500/60">
+                </div>
+                <div>
+                    <label class="block text-xs text-neutral-400 mb-1">Port</label>
+                    <input type="text" name="port" value="993" required
+                           class="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 [&:user-invalid]:border-red-500/60">
+                </div>
+                <div>
+                    <label class="block text-xs text-neutral-400 mb-1">SSL/TLS</label>
+                    <select name="ssl_mode" required
+                            class="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 [&:user-invalid]:border-red-500/60">
+                        <option value="SSL" selected>SSL</option>
+                        <option value="STARTTLS">STARTTLS</option>
+                        <option value="NONE">Keine</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs text-neutral-400 mb-1">Benutzername</label>
+                    <input type="text" name="username" required
+                           class="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 [&:user-invalid]:border-red-500/60">
+                </div>
+                <div>
+                    <label class="block text-xs text-neutral-400 mb-1">App-Passwort</label>
+                    <input type="password" name="password" required
+                           class="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 [&:user-invalid]:border-red-500/60">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit"
+                        class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-xs font-medium text-white transition-colors">Hinzufügen</button>
+                <button type="button"
+                        class="px-3 py-1.5 bg-white/10 hover:bg-white/15 rounded-md text-xs font-medium text-neutral-200 hover:text-white transition-colors">Verbindung testen</button>
+            </div>
+        </form>
 
         <!-- IMAP accounts list -->
         <div>

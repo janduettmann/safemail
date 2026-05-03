@@ -70,6 +70,10 @@ class AppAccount(UserMixin, db.Model):
     password_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     encryption_salt: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     encrypted_data_key: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    
+    @property
+    def initials(self) -> str:
+        return f"{self.firstname[0].upper()}{self.lastname[0].upper()}"
 
 class MailAccount(db.Model):
     """An IMAP mail account linked to an application user.

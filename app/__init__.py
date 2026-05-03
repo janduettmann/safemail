@@ -51,7 +51,6 @@ def create_app() -> Flask:
         """
         if current_user.is_authenticated and current_user.id not in user_keys:
             logout_user()
-            return redirect(url_for('app_account.login'))
     
     def scan_worker(app):
         with app.app_context():
