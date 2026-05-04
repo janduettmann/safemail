@@ -5,7 +5,7 @@ from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 import logging
 import bcrypt
-from typing import cast
+from typing import Optional, cast
 
 from app.models import AppAccount, MailAccount
 from app.extensions import db, user_keys
@@ -90,8 +90,8 @@ def login():
     in the in-memory user_keys dict, and redirect to home or mail account setup.
     """
     if request.method == "POST":
-        username: str = request.form["username"]
-        password: bytes = request.form["password"].encode(encoding="utf-8")
+        username: str = request.form["username"].strip()
+        password: bytes = request.form["password"].strip().encode(encoding="utf-8")
 
         account_entry = AppAccount.query.filter(AppAccount.username == username).one_or_none()
 
@@ -127,9 +127,7 @@ def login():
 @login_required
 def logout():
     """Log the user out and remove their data key from the in-memory store."""
-    app_account = cast(AppAccount, current_user)
-    if user_keys[app_account.id]:
-        del user_keys[app_account.id]
+    user_keys.pop(current_user.id)
     logout_user()
     return render_template('login.html')
 
@@ -137,11 +135,11 @@ def logout():
 @app_account_bp.route(rule="/account/profile", methods=["POST"])
 @login_required
 def update_profile():
-    firstname = request.form.get("firstname", default="").strip()
-    lastname = request.form.get("lastname", default="").strip()
+    firstname: str = request.form.get("firstname", default="").strip()
+    lastname: str = request.form.get("lastname", default="").strip()
     
-    errors = []
-    
+    errors: list[str] = []
+
     if not firstname:
         errors.append("Firstname can't be empty!")
     if not lastname:
@@ -175,15 +173,18 @@ def update_profile():
 @app_account_bp.route(rule="/account/username", methods=["POST"])
 @login_required
 def update_username():
-    username = request.form.get("username", default="").strip()
+    username: str = request.form.get("username", default="").strip()
 
-    errors = []
+    errors: list[str] = []
 
     if not username:
         errors.append("Username can't be empty!")
 
     if len(username) > 255:
         errors.append("Username is too long!")
+
+    if current_user.username == username:
+        errors.append("This is already your current username!")
 
     if errors:
         for msg in errors:
@@ -201,3 +202,63 @@ def update_username():
         flash("Username already exists!", "error")
 
     return redirect(url_for("settings.settings_page", page="account")) 
+
+@app_account_bp.route(rule="/account/password", methods=["POST"])
+@login_required
+def update_password():
+    current_password: bytes = request.form["current_password"].strip().encode(encoding="utf-8")
+    new_password: bytes = request.form["new_password"].strip().encode(encoding="utf-8")
+    new_password_confirm: bytes = request.form["new_password_confirm"].strip().encode(encoding="utf-8")
+    
+    errors: list[str] = []
+
+    if not new_password == new_password_confirm:
+        logger.error(msg="Please make sure both password fields are identical!")
+        errors.append("Please make sure both password fields are identical!")
+
+    correct_current_password: bool = bcrypt.checkpw(password=current_password, hashed_password=current_user.password_hash)
+    if not correct_current_password:
+        logger.error(msg="Invalid current password!")
+        errors.append("Invalid current password!")
+    
+    identical_password: bool = bcrypt.checkpw(password=new_password, hashed_password=current_user.password_hash)
+    if identical_password:
+        logger.error(msg="This is already your current password!")
+        errors.append("This is already your current password!")
+
+    if errors:
+        for msg in errors:
+            flash(msg, "error")
+        return redirect(url_for("settings.settings_page", page="account")) 
+
+    new_password_salt: bytes = bcrypt.gensalt()
+    new_password_hash: bytes = bcrypt.hashpw(password=new_password, salt=new_password_salt)
+
+    data_key: Optional[bytes] = user_keys.get(current_user.id, None)
+
+    if not data_key:
+        logger.error("Datakey doesn't exist!")
+        logout_user()
+        return render_template('login.html')
+
+
+    new_encryption_salt: bytes = generate_salt()
+    new_encrypted_data_key: bytes = encrypt(data=data_key, key=derive_key(new_password, new_encryption_salt))
+
+    current_user.password_hash = new_password_hash
+    current_user.encryption_salt = new_encryption_salt
+    current_user.encrypted_data_key = new_encrypted_data_key
+
+    try: 
+        db.session.commit()
+        logger.info("Password successfully updated!")
+        flash("Password successfully updated!", "success")
+        user_keys.pop(current_user.id)
+        logout_user()
+        return render_template('login.html')
+
+    except Exception:
+        db.session.rollback()
+        logger.error("Failed to save changes. Please try again.")
+        flash("Failed to save changes. Please try again.", "error")
+        return redirect(url_for("settings.settings_page", page="account")) 
