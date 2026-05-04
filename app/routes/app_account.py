@@ -1,5 +1,7 @@
 from flask import Blueprint, redirect, render_template, request, flash, url_for
+from flask.sansio.app import App
 from flask_login import login_user, logout_user, login_required, current_user
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 import logging
 import bcrypt
@@ -22,10 +24,31 @@ def signup():
     then redirect to the mail account setup page.
     """
     if request.method == "POST":
-        username: str = request.form["username"]
-        password: bytes = request.form["password"].encode(encoding="utf-8")
-        firstname: str = request.form["firstname"]
-        lastname: str = request.form["lastname"]
+        username: str = request.form["username"].strip()
+        password: bytes = request.form["password"].strip().encode(encoding="utf-8")
+        firstname: str = request.form["firstname"].strip()
+        lastname: str = request.form["lastname"].strip()
+
+        errors = []
+
+        if not firstname:
+            errors.append("Firstname can't be empty.")
+        if not lastname:
+            errors.append("Lastname can't be empty.")
+        if not username:
+            errors.append("Username can't be empty.")
+
+        if len(firstname) > 255:
+            errors.append("Firstname is too long.")
+        if len(lastname) > 255:
+            errors.append("Lastname is too long.")
+        if len(username) > 255:
+            errors.append("Username is too long.")
+
+        if errors:
+            for msg in errors:
+                flash(msg, "error")
+            return redirect(url_for('app_account.signup'))
 
         password_salt: bytes = bcrypt.gensalt()
         password_hash: bytes = bcrypt.hashpw(password=password, salt=password_salt)
@@ -52,8 +75,8 @@ def signup():
             return redirect(url_for('mail_account.add_mail_account'))
         except IntegrityError:
             db.session.rollback()
-            logger.error(msg="Account already exist!")
-            flash("Account already exist.")
+            logger.error(msg="Username already exist!")
+            flash("Username already exist.", "error")
             return redirect(url_for('app_account.signup'))
 
     return render_template("signup.html")
@@ -74,18 +97,18 @@ def login():
 
         if not account_entry:
             logger.error(msg="Invalid username or password.")
-            flash("Invalid username or password.")
+            flash("Invalid username or password.", "error")
             return redirect(url_for('app_account.login'))
         
         correct_password: bool = bcrypt.checkpw(password=password, hashed_password=account_entry.password_hash)
         if not correct_password:
             logger.error(msg="Invalid username or password.")
-            flash("Invalid username or password.")
+            flash("Invalid username or password.", "error")
             return redirect(url_for('app_account.login'))
 
         if not login_user(account_entry):
             logger.error(msg="User is banned!")
-            flash("User is banned!")
+            flash("User is banned!", "error")
             return redirect(url_for('app_account.login'))  
 
         derived_key: bytes = derive_key(password=password, salt=account_entry.encryption_salt)
@@ -109,3 +132,72 @@ def logout():
         del user_keys[app_account.id]
     logout_user()
     return render_template('login.html')
+
+
+@app_account_bp.route(rule="/account/profile", methods=["POST"])
+@login_required
+def update_profile():
+    firstname = request.form.get("firstname", default="").strip()
+    lastname = request.form.get("lastname", default="").strip()
+    
+    errors = []
+    
+    if not firstname:
+        errors.append("Firstname can't be empty!")
+    if not lastname:
+        errors.append("Lastname can't be empty!")
+
+    if len(firstname) > 255:
+        errors.append("Firstname is too long!")
+    if len(lastname) > 255:
+        errors.append("Lastname is too long!")
+    
+    if errors:
+        for msg in errors:
+            flash(msg, "error")
+            logger.error(msg)
+        return redirect(url_for("settings.settings_page", page="account"))
+
+    current_user.firstname = firstname
+    current_user.lastname = lastname
+
+    try:
+        db.session.commit()
+        logger.info("Profile Successfully updated!")
+        flash("Profile Successfully updated!", "success")
+    except Exception:
+        db.session.rollback()
+        logger.error("Failed to save changes. Please try again.")
+        flash("Failed to save changes. Please try again.", "error")
+
+    return redirect(url_for("settings.settings_page", page="account"))
+    
+@app_account_bp.route(rule="/account/username", methods=["POST"])
+@login_required
+def update_username():
+    username = request.form.get("username", default="").strip()
+
+    errors = []
+
+    if not username:
+        errors.append("Username can't be empty!")
+
+    if len(username) > 255:
+        errors.append("Username is too long!")
+
+    if errors:
+        for msg in errors:
+            flash(msg, "error")
+        return redirect(url_for("settings.settings_page", page="account")) 
+
+    current_user.username = username
+    try:
+        db.session.commit()
+        logger.info("Username successfully changed!")
+        flash("Username successfully changed!", "success")
+    except IntegrityError:
+        db.session.rollback()
+        logger.error("Username already exists!")
+        flash("Username already exists!", "error")
+
+    return redirect(url_for("settings.settings_page", page="account")) 

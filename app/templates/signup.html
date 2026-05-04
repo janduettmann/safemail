@@ -11,43 +11,25 @@
     <div class="border-b border-white/10 pb-5">
         <h1 class="text-white text-4xl tracking-tighter font-bold">Sign up</h1>
     </div>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="space-y-3 mt-6">
-                {% for message in messages %}
-                    <div class="flex items-start gap-4 p-4 rounded-xl border border-red-500/20 bg-red-500/5 backdrop-blur-sm group animate-in fade-in slide-in-from-top-2 duration-300">
-                        <!-- Icon: Lucide Alert-Circle -->
-                        <div class="flex-shrink-0 mt-0.5">
-                            <i data-lucide="alert-circle" class="w-6 h-6 text-red-500"></i>
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                            <h3 class="text-red-500 font-bold text-sm tracking-wide uppercase">SOMETHING WENT WRONG</h3>
-                            <p class="text-neutral-400 text-sm leading-relaxed">{{ message }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+    {% include 'components/flash_message.html' %}
     <form method="POST" action="/signup">
         <div class="flex flex-col gap-y-5 bg-[#212121] my-5 pb-10 border-b border-white/10">
             <div class="flex flex-col gap-y-2.5">
                 <span class="text-xl text-white/80 font-semibold tracking-tighter">Firstname</span>
-                <input class="w-full p-2.5 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="text" name="firstname" required=True>
+                <input class="w-full p-2.5 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="text" name="firstname" required=True maxlength="255">
             </div>
             <div class="flex flex-col gap-y-2.5">
                 <span class="text-xl text-white/80 font-semibold tracking-tighter">Lastname</span>
-                <input class="w-full p-2.5 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="text" name="lastname" required=True>
+                <input class="w-full p-2.5 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="text" name="lastname" required=True maxlength="255">
             </div>
             <div class="flex flex-col gap-y-2.5">
                 <span class="text-xl text-white/80 font-semibold tracking-tighter">Username</span>
-                <input class="w-full p-2.5 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="text" name="username" required=True>
+                <input class="w-full p-2.5 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="text" name="username" required=True maxlength="255">
             </div>
             <div class="flex flex-col gap-y-2.5 ">
                 <span class="text-xl text-white/80 font-semibold tracking-tighter">Password</span>
                 <div class="    relative">
-                    <input id="passwordInput" class="w-full p-2.5 pr-12 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="password" name="password" required>
+                    <input id="passwordInput" class="w-full p-2.5 pr-12 bg-[#171717] border border-white/10 rounded-lg text-white font-semibold" type="password" name="password" required="True" maxlength="255">
                     <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors">
                         <!-- Eye Open -->
                         <i id="eyeOpen" data-lucide="eye" class="w-6 h-6 text-white hidden"></i>

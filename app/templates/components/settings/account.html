@@ -6,74 +6,91 @@
             <span class="text-neutral-300">{{ current_user.firstname }} {{ current_user.lastname }}</span>
         </div>
     </div>
-
+    <div class="pb-5">
+        {% include 'components/flash_message.html' %}
+    </div>
     <!-- Card: Profil -->
     <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
         <div class="px-4 py-3 border-b border-white/10">
-            <h3 class="text-sm font-semibold text-white">Profil</h3>
+            <h3 class="text-sm font-semibold text-white">Account</h3>
         </div>
         <div class="p-4">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-xs text-neutral-400 mb-1.5">Vorname</label>
-                    <input type="text" value="Alice"
-                        class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
+            <form method="POST" action="{{ url_for('app_account.update_profile') }}">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-neutral-400 mb-1.5">Firstname</label>
+                        <input type="text" name="firstname" value="{{ current_user.firstname }}"
+                            class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-neutral-400 mb-1.5">Lastname</label>
+                        <input type="text" name="lastname" value="{{ current_user.lastname }}"
+                            class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs text-neutral-400 mb-1.5">Nachname</label>
-                    <input type="text" value="Example"
-                        class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs text-neutral-400 mb-1.5">E-Mail</label>
-                <input type="email" value="alice@example.com"
-                    class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
-                <div class="text-xs text-neutral-500 mt-1.5">Diese Adresse wird für Login und Sicherheits-Benachrichtigungen verwendet.</div>
-            </div>
-            <button class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Änderungen speichern</button>
+                <button type="submit" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Save</button>
+            </form>
         </div>
     </div>
 
+    <!-- Card: Username -->
+    <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
+        <div class="px-4 py-3 border-b border-white/10">
+            <h3 class="text-sm font-semibold text-white">Username</h3>
+        </div>
+        <div class="p-4">
+            <form method="POST" action="{{ url_for('app_account.update_username') }}">
+                <div class="mb-4">
+                    <label class="block text-xs text-neutral-400 mb-1.5">Username</label>
+                    <input type="text" name="username" value="{{ current_user.username }}"
+                        class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
+                </div>
+                <button type="submit" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Change Username</button>
+            </form>
+        </div>
+    </div>
     <!-- Card: Passwort -->
     <div class="bg-[#1a1a1a] border border-white/10 rounded-md mb-4 overflow-hidden">
         <div class="px-4 py-3 border-b border-white/10">
-            <h3 class="text-sm font-semibold text-white">Passwort</h3>
+            <h3 class="text-sm font-semibold text-white">Password</h3>
         </div>
         <div class="p-4">
             <div class="mb-4">
-                <label class="block text-xs text-neutral-400 mb-1.5">Aktuelles Passwort</label>
+                <label class="block text-xs text-neutral-400 mb-1.5">Current Password</label>
                 <input type="password" placeholder="••••••••••"
                     class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
             </div>
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-xs text-neutral-400 mb-1.5">Neues Passwort</label>
+                    <label class="block text-xs text-neutral-400 mb-1.5">New Password</label>
                     <input type="password"
                         class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
                 </div>
                 <div>
-                    <label class="block text-xs text-neutral-400 mb-1.5">Bestätigung</label>
+                    <label class="block text-xs text-neutral-400 mb-1.5">Confirm New Password</label>
                     <input type="password"
                         class="w-full px-3 py-1.5 bg-[#212121] border border-white/10 rounded-md text-sm text-white focus:outline-none focus:border-rose-500/80 focus:ring-2 focus:ring-rose-500/40 transition-colors">
                 </div>
             </div>
-            <button class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Passwort ändern</button>
+            <button class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 rounded-md text-sm font-medium text-white transition-colors">Change Password</button>
         </div>
     </div>
 
     <!-- Card: Gefahrenzone -->
     <div class="bg-[#1a1a1a] border border-red-500/20 rounded-md mb-4 overflow-hidden">
         <div class="px-4 py-3 border-b border-red-500/20">
-            <h3 class="text-sm font-semibold text-red-400">Gefahrenzone</h3>
+            <h3 class="text-sm font-semibold text-red-400">Danger Zone</h3>
         </div>
         <div class="p-4">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <div class="text-sm font-medium text-white mb-1">Account löschen</div>
-                    <div class="text-xs text-neutral-400 max-w-md">Löscht deinen SafeMail-Account, alle verbundenen IMAP-Konfigurationen und sämtliche Scan-Historie. Diese Aktion ist nicht umkehrbar.</div>
+                    <div class="flex items-center gap-x-1">
+                        <i data-lucide="triangle-alert" class="w-4 h-4 text-red-400 -translate-y-0.5"></i>
+                        <div class="text-sm font-medium text-white mb-1">Delete Account</div>
+                    </div>
+                    <div class="text-xs text-neutral-400 max-w-md">Deletes your SafeMail account, all connected IMAP configurations, and all scan history. This action is irreversible.</div>
                 </div>
-                <button class="px-3 py-1.5 bg-transparent hover:bg-red-500 border border-red-500/60 hover:border-red-500 rounded-md text-sm font-medium text-red-400 hover:text-white transition-colors whitespace-nowrap">Account löschen</button>
+                <button class="px-3 py-1.5 bg-transparent hover:bg-red-500 border border-red-500/60 hover:border-red-500 rounded-md text-sm font-medium text-red-400 hover:text-white transition-colors whitespace-nowrap">Delete Account</button>
             </div>
         </div>
     </div>
