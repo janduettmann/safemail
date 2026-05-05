@@ -1,4 +1,4 @@
-from sqlalchemy import JSON, Enum as SAEnum, null
+from sqlalchemy import JSON, Enum as SAEnum
 from sqlalchemy.sql.sqltypes import LargeBinary
 from sqlalchemy import ForeignKey, String, UniqueConstraint, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,8 +29,8 @@ class Mail(db.Model):
     __tablename__ = "mail"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    account_id: Mapped[int] = mapped_column(ForeignKey("mail_account.id"), nullable=False, index=True)
-    folder_id: Mapped[int] = mapped_column(ForeignKey("folder.id"), nullable=False, index=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("mail_account.id", ondelete="CASCADE"), nullable=False, index=True)
+    folder_id: Mapped[int] = mapped_column(ForeignKey("folder.id", ondelete="CASCADE"), nullable=False, index=True)
     message_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     uid: Mapped[int] = mapped_column(nullable=False, index=True)
     subject: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
@@ -39,13 +39,25 @@ class Mail(db.Model):
     date: Mapped[datetime] = mapped_column(nullable=False, index=True)
     text: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
     html: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
-    occurrence_files: Mapped[List["OccurrenceFile"]] = relationship(back_populates="mail")
     verdict: Mapped[Verdict] = mapped_column(SAEnum(Verdict, native_enum=False), nullable=False, index=True, default=Verdict.UNKNOWN)
     worst_verdict: Mapped[int] = mapped_column(nullable=False, default=0)
     total_engines: Mapped[int] = mapped_column(nullable=False, default=0)
     scan_status: Mapped[ScanStatus] = mapped_column(SAEnum(ScanStatus, native_enum=False), nullable=False, index=True, default=ScanStatus.PENDING)
 
     deleted_at: Mapped[Optional[datetime]] = mapped_column(nullable=True, index=True)
+
+    occurrence_urls: Mapped[List["OccurrenceUrl"]] = relationship(
+        back_populates="mail",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+    occurrence_files: Mapped[List["OccurrenceFile"]] = relationship(
+        back_populates="mail",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+    mail_account: Mapped["MailAccount"] = relationship(back_populates="mails")
+    folder: Mapped["Folder"] = relationship(back_populates="mails")
 
     __table_args__ = (
         UniqueConstraint("account_id", "folder_id", "uid", name="uq_mail_account_folder_uid"),
@@ -71,6 +83,12 @@ class AppAccount(UserMixin, db.Model):
     encryption_salt: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     encrypted_data_key: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     
+    mail_accounts: Mapped[list["MailAccount"]] = relationship(
+        back_populates="app_account",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
     @property
     def initials(self) -> str:
         return f"{self.firstname[0].upper()}{self.lastname[0].upper()}"
@@ -93,13 +111,26 @@ class MailAccount(db.Model):
     __tablename__ = "mail_account"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("app_account.id"), nullable=False, index=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("app_account.id", ondelete="CASCADE"), nullable=False, index=True)
     host: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     port: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, default=993)
     username: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     delimiter: Mapped[String] = mapped_column(String(1), nullable=False, default="/")
+    
+    app_account: Mapped["AppAccount"] = relationship(back_populates="mail_accounts")
+    
+    mails: Mapped[list["Mail"]] = relationship(
+        back_populates="mail_account",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
+    folder: Mapped[list["Folder"]] = relationship(
+        back_populates="mail_account",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
     __table_args__ = (
         UniqueConstraint("owner_id", "username", "port", name="uq_mailaccount_owner_host_port_user"),
     )
@@ -119,11 +150,19 @@ class Folder(db.Model):
     __tablename__ = "folder"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    account_id: Mapped[int] = mapped_column(ForeignKey("mail_account.id"), nullable=False, index=True)
+    account_id: Mapped[int] = mapped_column(ForeignKey("mail_account.id", ondelete="CASCADE"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(nullable=False, index=True)
     uid_validity: Mapped[int] = mapped_column(nullable=False, index=True)
     flag: Mapped[str] = mapped_column(String(16), nullable=True)
     total_messages: Mapped[int] = mapped_column(nullable=True)
+
+    mail_account: Mapped["MailAccount"] = relationship(back_populates="folder")
+
+    mails: Mapped[list["Mail"]] = relationship(
+        back_populates="folder",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
     __table_args__ = (
         UniqueConstraint("account_id", "name", name="uq_acc_folder"),
@@ -141,9 +180,11 @@ class OccurrenceUrl(db.Model):
     __tablename__ = "occurrence_url"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    canonical_id: Mapped[int] = mapped_column(ForeignKey("canonical_url.id"), nullable=False, index=True)
-    mail_id: Mapped[int] = mapped_column(ForeignKey("mail.id"), nullable=False, index=True)
+    canonical_id: Mapped[int] = mapped_column(ForeignKey("canonical_url.id", ondelete="CASCADE"), nullable=False, index=True)
+    mail_id: Mapped[int] = mapped_column(ForeignKey("mail.id", ondelete="CASCADE"), nullable=False, index=True)
     original: Mapped[str] = mapped_column(Text, nullable=False)
+
+    mail: Mapped["Mail"] = relationship(back_populates="occurrence_urls")
 
     __table_args__ = (
         UniqueConstraint("mail_id", "canonical_id", "original", name="uq_occ_url_mail_canon_orig"),
@@ -191,11 +232,12 @@ class OccurrenceFile(db.Model):
     __tablename__ = "occurrence_file"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    mail_id: Mapped[int] = mapped_column(ForeignKey("mail.id"), nullable=False, index=True)
-    canonical_id: Mapped[int] = mapped_column(ForeignKey("canonical_file.id"), nullable=False, index=True)
+    mail_id: Mapped[int] = mapped_column(ForeignKey("mail.id", ondelete="CASCADE"), nullable=False, index=True)
+    canonical_id: Mapped[int] = mapped_column(ForeignKey("canonical_file.id", ondelete="CASCADE"), nullable=False, index=True)
     filename: Mapped[str] = mapped_column(Text, nullable=False, default="unnamed_attachment")
     size: Mapped[int] = mapped_column(nullable=False)
-    mime: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, default=None)
+    mime: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, default=None)# In OccurrenceFile: mails → mail
+
     mail: Mapped["Mail"] = relationship(back_populates="occurrence_files")
 
     __table_args__ = (

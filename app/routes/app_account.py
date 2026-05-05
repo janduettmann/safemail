@@ -257,8 +257,41 @@ def update_password():
         logout_user()
         return render_template('login.html')
 
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        logger.error("Failed to save changes. Please try again.")
-        flash("Failed to save changes. Please try again.", "error")
+        logger.error(f"Failed to save changes! Please try again. Error: {e}")
+        flash("Failed to save changes. Please try again!", "error")
         return redirect(url_for("settings.settings_page", page="account")) 
+
+@app_account_bp.route(rule="/account/account", methods=["POST"])
+@login_required
+def delete_account():
+    delete_confirmation: str = request.form.get("delete_confirmation", "").strip()
+
+    errors: list[str] = []
+
+    if not delete_confirmation:
+        logger.error("Type in the confirmation word!")
+        errors.append("Type in the confirmation word!")
+
+    if delete_confirmation != "delete":
+        logger.error("The confirmation word is incorrect!")
+        errors.append("The confirmation word is incorrect!")
+
+    if errors:
+        for msg in errors:
+            flash(msg, "error")
+        return redirect(url_for("settings.settings_page", page="account"))
+    
+    user = db.session.get(AppAccount, current_user.id)
+    db.session.delete(user)
+
+    try:
+        db.session.commit()
+        user_keys.pop(current_user.id)
+        logout_user()
+        logger.info("AppAccount successfully deleted!")
+        return redirect(url_for('app_account.signup'))
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to delete AppAccount! Error: {e}")

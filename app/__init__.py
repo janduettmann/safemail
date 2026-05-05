@@ -2,8 +2,8 @@ import threading
 from typing import Optional
 from flask import Flask, redirect, url_for, make_response, request
 import logging
-
 from flask_login import current_user, logout_user
+from sqlalchemy import event
 
 from app.extensions import db, login_manager, user_keys, scan_queue
 from app.config import Config
@@ -36,7 +36,14 @@ def create_app() -> Flask:
     login_manager.init_app(app)
 
     with app.app_context():
+        @event.listens_for(db.engine, "connect")
+        def _set_sqlite_pragma(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+
         db.create_all()
+
 
     @app.context_processor
     def inject_enums():
@@ -70,7 +77,6 @@ def create_app() -> Flask:
 
     thread = threading.Thread(target=scan_worker, args=(app,), daemon=True)
     thread.start()
-                
 
     app.register_blueprint(scan_bp)
     app.register_blueprint(mail_account_bp)
@@ -83,7 +89,6 @@ def create_app() -> Flask:
     logging.basicConfig(format='%(levelname)s (%(asctime)s): %(message)s (Line: %(lineno)d [%(filename)s])',
                     datefmt='%Y-%m-%d %H:%M:%S %p',
                     level=logging.DEBUG)
-
 
     return app
 
