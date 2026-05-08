@@ -27,6 +27,7 @@ class ScanStatus(str, Enum):
 
 class SyncStatus(str, Enum):
     """Lifecycle state of an IMAP mail sync operation."""
+    PENDING = "pending"
     SYNCED = "synced"
     FAILED_HOST = "failed_host"
     FAILED_AUTH = "failed_auth"

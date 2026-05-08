@@ -263,7 +263,7 @@ def update_password():
         flash("Failed to save changes. Please try again!", "error")
         return redirect(url_for("settings.settings_page", page="account")) 
 
-@app_account_bp.route(rule="/account/account", methods=["POST"])
+@app_account_bp.route(rule="/account/delete", methods=["POST"])
 @login_required
 def delete_account():
     delete_confirmation: str = request.form.get("delete_confirmation", "").strip()
@@ -274,7 +274,7 @@ def delete_account():
         logger.error("Type in the confirmation word!")
         errors.append("Type in the confirmation word!")
 
-    if delete_confirmation != "delete":
+    if delete_confirmation and delete_confirmation != "delete":
         logger.error("The confirmation word is incorrect!")
         errors.append("The confirmation word is incorrect!")
 
@@ -295,3 +295,4 @@ def delete_account():
     except Exception as e:
         db.session.rollback()
         logger.error(f"Failed to delete AppAccount! Error: {e}")
+        return redirect(url_for("settings.settings_page", page="account"))

@@ -80,3 +80,91 @@ def add_mail_account():
         return redirect(url_for('home.home'))
     
     return render_template("add_mail_account.html")
+
+@mail_account_bp.route("/mail_accounts/add", methods=["POST"])
+@login_required
+def add_mail_account_temp():
+    """Handle adding a new IMAP mail account.
+
+    GET: Render the add mail account form.
+    POST: Validate IMAP credentials, encrypt and store the account,
+    fetch initial folder list, and redirect to home.
+    """
+    data_key = user_keys[current_user.id]
+    host: str = request.form["host"]
+    port: str = request.form["port"]
+    username: str = request.form["username"]
+    password: str = request.form["password"]
+
+    errors: list[str] = []
+
+    encrypted_host: bytes = encrypt(data=host.encode('utf-8'), key=data_key)
+    encrypted_port: bytes = encrypt(data=port.encode('utf-8'), key=data_key)
+    encrypted_username: bytes = encrypt(data=username.encode('utf-8'), key=data_key)
+    encrypted_password: bytes = encrypt(data=password.encode('utf-8'), key=data_key)
+
+    new_mail_account: MailAccount = MailAccount(
+        owner_id = app_account.id,
+        host = encrypted_host,
+        port = encrypted_port,
+        username = encrypted_username,
+        password = encrypted_password
+    )
+
+    imap_fetcher: ImapFetcher = ImapFetcher(DecryptedMailAccount.decrypt_mail_account(new_mail_account))
+    # Checks if the provided host, port, username and password is valid
+    is_valid, message = imap_fetcher.is_mail_account_valid()
+
+    if not is_valid:
+        errors.append(message)
+        logger.error(message)
+
+    db.session.add(new_mail_account)
+    db.session.flush()
+
+    # Folder name and uidvalidity
+    new_folders: list[Folder] = _get_folders(new_mail_account)
+
+    if not new_folders:
+        logger.error("Failed to fetch folders: Connection timed out while accessing IMAP account!")
+        errors.append("Failed to fetch folders: Connection timed out while accessing IMAP account!")
+    
+    if errors:
+        for msg in errors:
+            flash(msg, "error")
+        return redirect(url_for("settings.settings_page", page="mail_accounts"))
+
+    [db.session.add(new_folder) for new_folder in new_folders]
+
+    try:
+        db.session.commit()
+        logger.error("Mail Account added successfully!")
+        flash("Mail Account added successfully!", "error")
+
+    except IntegrityError:
+        db.session.rollback()
+        logger.error("Account already exists!")
+        flash("Account already exists!", "error")
+
+    return redirect(url_for("settings.settings_page", page="mail_accounts"))
+    
+def _get_folders(mail_account: MailAccount) -> list[Folder]:
+    folders: list[Folder] = []
+    try:
+        with ImapFetcher(DecryptedMailAccount.decrypt_mail_account(mail_account)) as imap_fetcher:
+            folder_infos: list[FolderInfo] = imap_fetcher.fetch_folders()
+    except TimeoutError:
+        db.session.rollback()
+        return folders
+
+    for folder in folder_infos:
+        folders.append(Folder(
+            account_id = mail_account.id,
+            name = folder.name,
+            uid_validity = folder.uid_validity,
+            flag = folder.flag
+            )
+        )
+    return folders
+
+    
