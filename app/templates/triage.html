@@ -3,11 +3,12 @@
 {% block head %}
     {{ super() }}
     <title>Triage - SafeMail</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
 {% endblock %}
 
 {% block app_content %}
 <div class="flex h-full">
-
+    {% if mail_accounts %}
     <!-- ==================== Column 1: Folders ==================== -->
     <div class="w-52 bg-[#1a1a1a] border-r border-white/10 flex flex-col shrink-0">
 
@@ -58,5 +59,27 @@
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="flex min-h-screen w-full items-center justify-center">  
+        <div class="bg-[#1a1a1a] border border-white/10 rounded-lg pt-2.5 glow-border">
+            <div class="text-center">
+                <div class="flex justify-center mb-4">
+                    <i data-lucide="mail" class="w-10 h-10 text-rose-500"></i>
+                </div>
+                <div class="flex justify-center mb-2">
+                    <h5 class="text-white text-2xl font-semibold">
+                        Get Started
+                    </h5>
+                </div>
+                <p class="block text-neutral-500 leading-normal font-light mb-4 max-w-lg mx-3">
+                    To get started, please add your email account.
+                </p>
+                <div class="text-center border-t border-white/10 rounded-b-lg bg-[#212121] py-5">
+                    <a class="rounded-md px-3 py-2 text-sm font-semibold text-white bg-rose-500 hover:bg-rose-400" href="/settings/mail_accounts">+ Add Mail Account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

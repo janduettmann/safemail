@@ -1,0 +1,40 @@
+/* static/css/components.css */
+
+/* ============================================================
+   Animated Conic-Gradient Border
+   Usage: <div class="glow-border">...</div>
+   ============================================================ */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes card-rotate {
+  to { --angle: 360deg; }
+}
+
+.glow-border {
+  position: relative;
+  background: #1a1a1a;
+  border-radius: 0.5rem;
+}
+
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 70%,
+    #f43f7a 85%,
+    transparent 100%
+  );
+  animation: card-rotate 4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-border::before { animation: none; }
+}

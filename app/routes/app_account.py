@@ -72,7 +72,7 @@ def signup():
             db.session.commit()
             user_keys[new_app_account.id] = data_key
             logger.info(msg="Successfully created account!")
-            return redirect(url_for('mail_account.add_mail_account'))
+            return redirect(url_for('home.home'))
         except IntegrityError:
             db.session.rollback()
             logger.error(msg="Username already exist!")
@@ -116,10 +116,7 @@ def login():
         user_keys[account_entry.id] = data_key 
         mail_account_entry = MailAccount.query.filter(MailAccount.owner_id == account_entry.id).all()
         
-        if len(mail_account_entry) > 0:
-            return redirect(url_for('home.home'))
-    
-        return redirect(url_for('mail_account.add_mail_account'))
+        return redirect(url_for('home.home'))
 
     return render_template("login.html")
 
