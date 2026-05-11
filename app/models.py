@@ -6,7 +6,7 @@ from datetime import datetime, UTC
 from typing import Optional, List
 from flask_login import UserMixin
 
-from app.enums import ScanStatus, SyncStatus, Verdict
+from app.enums import ScanStatus, SyncStatus, Verdict, ConnectionStatus
 from app.extensions import db
 
 class Mail(db.Model):
@@ -117,8 +117,8 @@ class MailAccount(db.Model):
     username: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     password: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     delimiter: Mapped[String] = mapped_column(String(1), nullable=False, default="/")
-    scan_status: Mapped[ScanStatus] = mapped_column(SAEnum(ScanStatus, native_enum=False), nullable=False, index=True, default=SyncStatus.PENDING)
-    last_synced_at: Mapped[Optional[datetime]] = mapped_column(nullable=True, index=True)
+    connection_status: Mapped[ConnectionStatus] = mapped_column(SAEnum(ConnectionStatus, native_enum=False), nullable=False, index=True, default=ConnectionStatus.NEVER_CONNECTED)
+    last_connected_at: Mapped[Optional[datetime]] = mapped_column(nullable=True, index=True)
     added_at: Mapped[Optional[datetime]] = mapped_column(nullable=False, index=True, default=datetime.now(UTC))
     
     app_account: Mapped["AppAccount"] = relationship(back_populates="mail_accounts")

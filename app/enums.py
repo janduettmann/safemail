@@ -27,9 +27,15 @@ class ScanStatus(str, Enum):
 
 class SyncStatus(str, Enum):
     """Lifecycle state of an IMAP mail sync operation."""
-    PENDING = "pending"
     SYNCED = "synced"
-    FAILED_HOST = "failed_host"
-    FAILED_AUTH = "failed_auth"
-    FAILED_TIMEOUT = "failed_timeout"
     RUNNING = "running"
+    FAILED = "failed"
+
+class ConnectionStatus(str, Enum):
+    """Connection state of an Mail Account."""
+    OK = "ok"
+    HOST_UNREACHABLE = "host_unreachable"
+    AUTH_FAILED = "auth_failed"
+    TIMEOUT = "timeout"
+    NEVER_CONNECTED = "never_connected"
+    UNKNOWN_ERROR = "unknown_error"

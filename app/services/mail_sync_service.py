@@ -3,13 +3,14 @@ import logging
 from imap_tools.errors import MailboxLoginError
 from socket import gaierror
 from math import ceil
+from datetime import datetime, UTC
 
-from app.enums import SyncStatus
+from app.enums import SyncStatus, ConnectionStatus
 from app.schemas import DecryptedMailAccount, FolderInfo
 from app.services.extractor import Extractor
 from app.services.imap_fetcher import ImapFetcher
-from app.models import AppAccount, Folder, MailAccount, Mail
-from app.extensions import db
+from app.models import Folder, MailAccount, Mail
+from app.extensions import db, page_sync_status, page_uids
 from app.services.ingest import Ingester
 
 logger = logging.getLogger(__name__)
@@ -147,3 +148,71 @@ class MailSyncService:
         diff_batch : set[int] = batch - db_uids
 
         return batch, diff_batch
+
+    def sync_mails(self, selected_account_id: int, selected_folder_id: int, page: int, page_size: int, app) -> None:
+        """Background thread target that syncs folders and fetches new mails.
+
+        Runs inside a Flask app context. Updates the global sync_status dict
+        on success or failure.
+
+        Syncs folder structure via sync_mail_accounts, then resolves
+        IMAP UIDs for the requested page via fetch_uids_by_page (writing
+        them into page_uids before ingestion so polling can use them),
+        and finally ingests missing mails via sync_mails_by_uid.
+
+        Args:
+            app_account_id: Database id of the AppAccount.
+            selected_account_id: Database id of the MailAccount.
+            selected_folder_id: Database id of the Folder to sync.
+            page: The 1-based page number to sync.
+            page_size: Number of mails per page.
+            app: The Flask application object (for creating app context).
+        """
+        with app.app_context():
+            mail_account = db.session.get(MailAccount, selected_account_id)
+            folder = db.session.get(Folder, selected_folder_id)
+            
+            if not mail_account or not folder:
+                page_sync_status[(selected_folder_id, page)] = SyncStatus.FAILED
+                return
+
+            logger.debug("Try sync_mails in MailSyncService")
+            try:
+                with ImapFetcher(DecryptedMailAccount.decrypt_mail_account(mail_account)) as imap_fetcher:
+                    mail_account.last_connected_at = datetime.now(UTC)
+                    self.sync_folders(mail_account.id, imap_fetcher)
+                    page_uids[(selected_folder_id, page)], diffbatch = self.fetch_uids_by_page(mail_account, folder, page, page_size, imap_fetcher)
+                    self.sync_mails_by_uid(mail_account, folder, diffbatch, imap_fetcher)
+                    connection_status = ConnectionStatus.OK
+                    page_sync_status[(selected_folder_id, page)] = SyncStatus.SYNCED
+
+            except TimeoutError:
+                logger.error("Invalid imap port!")
+                connection_status = ConnectionStatus.TIMEOUT
+                page_sync_status[(selected_folder_id, page)] = SyncStatus.FAILED
+
+            except gaierror:
+                logger.error("Invalid imap host!")
+                connection_status = ConnectionStatus.HOST_UNREACHABLE
+                page_sync_status[(selected_folder_id, page)] = SyncStatus.FAILED
+
+            except MailboxLoginError:
+                logger.error("Invalid username or password!")
+                connection_status = ConnectionStatus.AUTH_FAILED
+                page_sync_status[(selected_folder_id, page)] = SyncStatus.FAILED
+
+            except Exception as e:
+                # Catch-all for unexpected errors so the worker thread does not crash silently.
+                logger.error(f"Unexpected sync error: {e}")
+                connection_status = ConnectionStatus.UNKNOWN_ERROR
+                page_sync_status[(selected_folder_id, page)] = SyncStatus.FAILED
+
+            finally:
+                mail_account.connection_status = connection_status
+                try:
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+
+
+

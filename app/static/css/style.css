@@ -416,9 +416,6 @@
   .h-12 {
     height: calc(var(--spacing) * 12);
   }
-  .h-fit {
-    height: fit-content;
-  }
   .h-full {
     height: 100%;
   }

@@ -1,30 +1,20 @@
-from collections import defaultdict
 from flask import Blueprint, abort, current_app, render_template, request, redirect, url_for, make_response
 from flask_login import current_user, login_required
-from typing import List, Optional, Sequence, cast
+from typing import List, Optional, Sequence
 import logging
 import threading
-from imap_tools.errors import MailboxLoginError
-from socket import gaierror
 from math import ceil
 
 
 from app.crypt_util import decrypt
 from app.enums import SyncStatus
-from app.models import AppAccount, Folder, MailAccount, Mail
-from app.schemas import DecryptedMail, DecryptedMailAccount
+from app.models import Folder, MailAccount, Mail
+from app.schemas import DecryptedMail
 from app.services.triage_service import TriageService
 from app.services.mail_sync_service import MailSyncService
-from app.services.imap_fetcher import ImapFetcher
-from app.extensions import db, user_keys, scan_queue
+from app.extensions import db, user_keys, scan_queue, page_uids, page_sync_status
 
 logger = logging.getLogger(__name__)
-# Tracks sync state per (folder_id, page) tuple across background threads.
-sync_status: dict[tuple[int, int], SyncStatus] = {}
-# Caches the IMAP UIDs belonging to each (folder_id, page) tuple.
-# Populated by the background sync thread before ingestion, so polling
-# queries can filter mails by UID instead of using OFFSET-based pagination.
-page_uids: defaultdict[tuple[int, int], set[int]] = defaultdict(set)
 
 triage_bp: Blueprint = Blueprint(name="home", import_name=__name__)
 
@@ -38,9 +28,8 @@ def home():
     Supports HTMX partial responses for polling during sync.
     POST: Manually trigger a mail sync for the selected folder.
     """
-    app_account = cast(AppAccount, current_user)
     is_syncing: bool = False
-    data_key: bytes = user_keys[app_account.id]
+    data_key: bytes = user_keys[current_user.id]
     decrypted_mail_accounts: dict[int, str] = {}
     decrypted_mails: list[DecryptedMail] = []
 
@@ -57,7 +46,10 @@ def home():
 
     if request.method == "GET":
         # Load the user's IMAP accounts.
-        mail_accounts = MailAccount.query.filter(MailAccount.owner_id == app_account.id).all()
+        mail_accounts = MailAccount.query.filter(MailAccount.owner_id == current_user.id).all()
+
+        if selected_account_id and selected_account_id not in [acc.id for acc in mail_accounts]:
+            return redirect(url_for('home.home'))
 
         if mail_accounts:
             if not selected_account_id:
@@ -86,7 +78,7 @@ def home():
         folders = _sort_folders(folders) # Sorts folders for correct order (e.g. first folder = Inbox)
 
         if not selected_folder_id:
-            selected_folder_id = _get_selected_folder_id(folders, selected_account_id) 
+            selected_folder_id = _get_selected_folder_id(folders) 
 
         if not selected_account_id or not selected_folder_id:
             return redirect(url_for('home.home'))
@@ -94,13 +86,13 @@ def home():
         mails: Sequence[Mail] = TriageService.get_mails_page(selected_folder_id, page, page_size, page_uids[selected_folder_id, page])
 
         if not mails:
-            if (selected_folder_id, page) not in sync_status:
-                sync_status[(selected_folder_id, page)] = SyncStatus.RUNNING
+            if (selected_folder_id, page) not in page_sync_status:
+                page_sync_status[(selected_folder_id, page)] = SyncStatus.RUNNING
                 is_syncing = True
                 app = current_app._get_current_object()
-                thread = threading.Thread(target=sync_mails, args=(app_account.id, selected_account_id, selected_folder_id, page, page_size, app))
+                thread = threading.Thread(target=MailSyncService().sync_mails, args=(selected_account_id, selected_folder_id, page, page_size, app))
                 thread.start()
-            elif sync_status[(selected_folder_id, page)] == SyncStatus.SYNCED:
+            elif page_sync_status[(selected_folder_id, page)] == SyncStatus.SYNCED:
                 is_syncing = False
 
         decrypted_mails = DecryptedMail.decrypt_mails(mails=mails, data_key=data_key) 
@@ -112,7 +104,7 @@ def home():
 
         if request.headers.get("HX-Request"):
             # Sync is finshed or not started, 286 means abort
-            if  (selected_folder_id, page) not in sync_status or not sync_status[(selected_folder_id, page)] == SyncStatus.RUNNING:
+            if  (selected_folder_id, page) not in page_sync_status or not page_sync_status[(selected_folder_id, page)] == SyncStatus.RUNNING:
                 is_syncing = False
                 status_code = 286
 
@@ -151,6 +143,12 @@ def home():
         )
 
     if request.method == "POST": 
+        logger.debug("Try POST")
+        mail_accounts = MailAccount.query.filter(MailAccount.owner_id == current_user.id).all()
+
+        if selected_account_id and selected_account_id not in [acc.id for acc in mail_accounts]:
+            return redirect(url_for('home.home'))
+
         if not selected_account_id or not selected_folder_id:
             return redirect(url_for('home.home'))
 
@@ -164,10 +162,11 @@ def home():
         total_pages = ceil(total_mails/page_size)
 
         decrypted_mails = DecryptedMail.decrypt_mails(mails=mails, data_key=data_key) 
-        if (selected_folder_id, page) not in sync_status or sync_status[selected_folder_id, page] == SyncStatus.SYNCED:
-            sync_status[(selected_folder_id, page)] = SyncStatus.RUNNING
+        if (selected_folder_id, page) not in page_sync_status or page_sync_status.get((selected_folder_id, page)) != SyncStatus.RUNNING:
+            page_sync_status[(selected_folder_id, page)] = SyncStatus.RUNNING
             app = current_app._get_current_object()
-            thread = threading.Thread(target=sync_mails, args=(app_account.id, selected_account_id, selected_folder_id, page, page_size, app))
+            logger.debug("Try sync_mails")
+            thread = threading.Thread(target=MailSyncService().sync_mails, args=(selected_account_id, selected_folder_id, page, page_size, app))
             thread.start()
 
         mail_html = render_template('components/mail_list_container.html', mails=decrypted_mails, selected_account_id=selected_account_id, selected_folder_id=selected_folder_id, page=page, is_syncing=True)
@@ -178,22 +177,20 @@ def home():
         return mail_html + toolbar_oob
         
 
-def _get_selected_folder_id(folders: List[List[Folder]], selected_account_id: int) -> int:
+def _get_selected_folder_id(folders: List[Folder]) -> int:
     """Return the folder id of the inbox, or the last folder as fallback.
 
     Args:
         folders: Sorted list of Folder instances.
-        selected_account_id: Currently selected account id (unused).
 
     Returns:
         The database id of the selected folder.
     """
     for folder in folders:
-        folder_id = folder.id
         if folder.flag == 'inbox':
-            return folder_id
+            return folder.id
     
-    return folder_id
+    return folder.id
 
 def _get_total_mails(selected_folder_id: int, folders: list[Folder]) -> int:
     """Return the IMAP total_messages count for the selected folder.
@@ -229,54 +226,6 @@ def _sort_folders(folders: List[Folder]) -> List[Folder]:
     }
     return sorted(folders, key=lambda f: FOLDER_ORDER.get(f.flag, 99))
 
-def sync_mails(app_account_id: int, selected_account_id: int, selected_folder_id: int, page: int, page_size: int, app) -> None:
-    """Background thread target that syncs folders and fetches new mails.
-
-    Runs inside a Flask app context. Updates the global sync_status dict
-    on success or failure.
-
-    Syncs folder structure via sync_mail_accounts, then resolves
-    IMAP UIDs for the requested page via fetch_uids_by_page (writing
-    them into page_uids before ingestion so polling can use them),
-    and finally ingests missing mails via sync_mails_by_uid.
-
-    Args:
-        app_account_id: Database id of the AppAccount.
-        selected_account_id: Database id of the MailAccount.
-        selected_folder_id: Database id of the Folder to sync.
-        page: The 1-based page number to sync.
-        page_size: Number of mails per page.
-        app: The Flask application object (for creating app context).
-    """
-    with app.app_context():
-        mail_account = MailAccount.query.filter(MailAccount.id == selected_account_id).one_or_none()
-        folder = Folder.query.filter(Folder.id == selected_folder_id).one_or_none()
-        try:
-            mail_sync_service: MailSyncService = MailSyncService()
-            with ImapFetcher(DecryptedMailAccount.decrypt_mail_account(mail_account)) as imap_fetcher:
-                mail_sync_service.sync_folders(mail_account.id, imap_fetcher)
-                page_uids[(selected_folder_id, page)], diffbatch = mail_sync_service.fetch_uids_by_page(mail_account, folder, page, page_size, imap_fetcher)
-                mail_sync_service.sync_mails_by_uid(mail_account, folder, diffbatch, imap_fetcher)
-
-        except TimeoutError:
-            logger.error("Invalid imap port!")
-            sync_status[(selected_folder_id, page)] = SyncStatus.FAILED_TIMEOUT
-            return
-        except gaierror:
-            logger.error("Invalid imap host!")
-            sync_status[(selected_folder_id, page)] = SyncStatus.FAILED_HOST
-            return
-        except MailboxLoginError:
-            logger.error("Invalid username or password!")
-            sync_status[(selected_folder_id, page)] = SyncStatus.FAILED_AUTH
-            return
-        except Exception as e:
-            # Catch-all for unexpected errors so the worker thread does not crash silently.
-            logger.error(f"Unexpected sync error: {e}")
-            sync_status[(selected_folder_id, page)] = SyncStatus.FAILED_HOST
-            return
-
-        sync_status[(selected_folder_id, page)] = SyncStatus.SYNCED
 
 @triage_bp.route("/mail/<int:mail_id>/content")
 @login_required
@@ -289,17 +238,16 @@ def mail_content(mail_id):
     Args:
         mail_id: Database id of the mail to display.
     """
-    app_account = cast(AppAccount, current_user)
     mail = (
         db.session.query(Mail)
         .join(MailAccount, MailAccount.id == Mail.account_id)
-        .filter(Mail.id == mail_id, MailAccount.owner_id == app_account.id)
+        .filter(Mail.id == mail_id, MailAccount.owner_id == current_user.id)
         .first()
     )
     if not mail:
         abort(403)
 
-    data_key = user_keys[app_account.id]
+    data_key = user_keys[current_user.id]
     decrypted_mail: DecryptedMail = DecryptedMail.decrypt_mail(mail=mail, data_key=data_key)
     return render_template('components/mail_detail.html', mail=decrypted_mail)
 
